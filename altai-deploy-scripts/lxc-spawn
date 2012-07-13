@@ -1,0 +1,107 @@
+#!/bin/bash -x
+
+LXC_NAME=${LXC_NAME:-centos62}
+LXC_IPADDR=${LXC_IPADDR:-172.18.36.102}
+LXC_NETMASK=${LXC_NETMASK:-255.255.255.0}
+LXC_NETWORK=${LXC_NETWORK:-172.18.36.0}
+LXC_BROADCAST=${LXC_BROADCAST:-172.18.36.255}
+LXC_GATEWAY=${LXC_GATEWAY:-172.18.36.1}
+#LXC_SSHKEY=${LXC_SSHKEY:-ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAmvToWEcHYyivPCsCWNlcFSfy4tG2MSj6ekC9Y5uw9rJbg7u5eJIhkl9whHEQmrbUeX2cj9QYK5cGrCMpJQD9pzU95YDA6wvAuRT1xim9kaRkowfSS/fjwrlfFyFvCT68aPPTNnacPGBg4bWq7XOFf5PNkTlr7E6ky/Hegc67YTRJS+o46TwdRsyIJquGmQvZOSGmhjSetYxIiJT0kmmDbV5OxMFUridiFt08HTQR5ij0eGfGjmEQKnG2sGyZUCIJ6SChokgXmXmxdHnHponFN5GxRY8YrZNud5w7vt0sPf2NVs0lwhJRCq9ZSFbz+8d9Z2OAVdCT9ZpQ3jR8ydsluw== mmalchuk@mmalchuk}
+[ -n "$LXC_SSHKEY" ] || LXC_SSHKEY=$(< ~/.ssh/id_rsa.pub)
+
+if [ -e "/var/lib/lxc/$LXC_NAME" ] ; then
+    echo "Error: $LXC_NAME already exists!"
+    exit 1
+fi
+
+if /bin/ping -q -c3 ${LXC_IPADDR} >/dev/null 2>&1 ; then
+    echo "Error: $LXC_IPADDR already exist!"
+    exit 1
+fi
+
+echo -n "Creating /var/lib/lxc/$LXC_NAME ..."
+mkdir -p "/var/lib/lxc/$LXC_NAME"
+echo " done."
+
+echo -n "Creating /var/lib/lxc/$LXC_NAME/config ..."
+cat >"/var/lib/lxc/$LXC_NAME/config" <<EOF
+lxc.utsname = $LXC_NAME
+lxc.tty = 4
+lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.link = br0
+lxc.network.name = eth0
+lxc.network.mtu = 1500
+lxc.rootfs = /var/lib/lxc/$LXC_NAME/rootfs
+lxc.mount = /var/lib/lxc/$LXC_NAME/fstab
+EOF
+echo " done."
+
+echo -n "Creating /var/lib/lxc/$LXC_NAME/fstab ..."
+cat >"/var/lib/lxc/$LXC_NAME/fstab" <<EOF
+none /var/lib/lxc/$LXC_NAME/rootfs/dev/pts devpts defaults 0 0
+none /var/lib/lxc/$LXC_NAME/rootfs/proc proc defaults 0 0
+none /var/lib/lxc/$LXC_NAME/rootfs/sys sysfs defaults 0 0
+EOF
+echo " done."
+
+echo -n "Creating filesystem..."
+#wget -cqO /tmp/centos6-rootfs.tar.gz http://dl.dropbox.com/u/75610803/centos6-rootfs.tar.gz
+#tar -xf /tmp/centos6-rootfs.tar.gz -C "/var/lib/lxc/$LXC_NAME/"
+mkdir -p "/var/lib/lxc/$LXC_NAME/rootfs"
+tar -xf ~/centos-6-x86_64.tar* -C "/var/lib/lxc/$LXC_NAME/rootfs"
+echo " done."
+
+echo -n "Configuring network..."
+cat >"/var/lib/lxc/$LXC_NAME/rootfs/etc/sysconfig/network" <<EOF
+NETWORKING="yes"
+GATEWAY="$LXC_GATEWAY"
+HOSTNAME="$LXC_NAME"
+EOF
+cat >"/var/lib/lxc/$LXC_NAME/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0" <<EOF
+DEVICE=eth0
+IPADDR=$LXC_IPADDR
+NETMASK=$LXC_NETMASK
+NETWORK=$LXC_NETWORK
+BROADCAST=$LXC_BROADCAST
+ONBOOT=yes
+NAME=eth0
+EOF
+cat >"/var/lib/lxc/$LXC_NAME/rootfs/etc/resolv.conf" <<EOF
+nameserver 8.8.8.8
+EOF
+echo " done."
+
+mkdir -p "/var/lib/lxc/$LXC_NAME/rootfs/root/.ssh/"
+echo $LXC_SSHKEY >"/var/lib/lxc/$LXC_NAME/rootfs/root/.ssh/authorized_keys"
+cp -ar /lib/modules/`uname -r` "/var/lib/lxc/$LXC_NAME/rootfs/lib/modules"
+
+echo -n "Starting $LXC_NAME ..."
+/usr/bin/lxc-start -n "$LXC_NAME" -d
+echo " done."
+
+die() {
+    echo "$1"
+    exit 1
+}
+
+echo -n "Checking host $LXC_IPADDR"
+
+    TRY_LEFT=10
+    STATUS=1
+    while [ $STATUS -ne 0 ] && [ $TRY_LEFT -gt 0 ]; do
+        sleep 20
+        sed -i "/$LXC_IPADDR/d" ~/.ssh/known_hosts
+        ssh -o StrictHostKeyChecking=no -q root@$LXC_IPADDR "whoami" >/dev/null
+        STATUS=$?
+        let "TRY_LEFT--"
+        echo -n "."
+    done
+    [ $STATUS -ne 0 ] && die "Virtual Machine $LXC_IPADDR cannot be reached through SSH"
+
+    echo "done"
+
+echo "Host spawned successfully. You can login: ssh root@$LXC_IPADDR"
+
+exit 0
+

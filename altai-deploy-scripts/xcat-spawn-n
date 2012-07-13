@@ -1,0 +1,52 @@
+#!/bin/sh
+
+
+NODE_NAME=$1
+echo "NODE_NAME="$NODE_NAME
+
+[ -n "$HW_SSHKEY" ] || HW_SSHKEY=$(< ./add_keys)
+
+#TODO remove setnet job at all
+cat >/install/postscripts/setnet <<EOF
+#!/bin/sh
+mount -o remount,size=1000m /tmp
+mount -o remount,size=1000m /var/tmp
+echo "$HW_SSHKEY" >> /root/.ssh/authorized_keys
+EOF
+
+echo "$NODE_NAME: config file created"
+rsetboot $NODE_NAME net
+rpower $NODE_NAME reset
+echo -n "$NODE_NAME: booting"
+until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
+echo "."
+echo "$NODE_NAME: configuring "
+
+ssh root@$NODE_NAME '
+set -ex
+
+DISK="/dev/sda"
+MNT="/mnt/sys"
+
+sfdisk "$DISK" -uM <<EOF
+1,10000,83
+,4000,82
+EOF
+mkfs.ext3 "${DISK}1"
+mkswap "${DISK}2"
+swapon "${DISK}2" 
+mkdir -p "$MNT"
+mount "${DISK}1" "$MNT"
+
+tar --one-file-system -cpf - / | tar --warning=no-timestamp -xpf - -C "$MNT"
+mount -t proc none "$MNT"/proc
+mount --rbind /dev "$MNT"/dev
+mount -n -t sysfs none "$MNT"/sys
+echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
+service sshd stop
+chroot "$MNT" /bin/bash -c "service sshd start"
+' || exit 255
+echo "$NODE_NAME: ready!"
+
+exit 0
+

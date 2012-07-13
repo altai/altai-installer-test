@@ -1,0 +1,19 @@
+{
+    "run_list": [ "role[master-node]" , "role[compute-node]" ],
+    "mysql-root-password": "4D4B9D7E-3094-419C-9D8C-88F94E3D2801",
+    "mysql-nova-password": "AFBD6ED7-88DC-4DF0-BF91-52BBF0145059",
+    "admin-login-name": "admin",
+    "admin-login-email": "openstack-core@griddynamics.com",
+    "admin-login-password": "topsecret",
+    "projects-interface": "eth0",
+    "master-ip-private": "MASTER_NODE_IP",
+    "master-ip-public": "MASTER_NODE_IP",
+    "dns-zone": "openstack-core@griddynamics.com",
+    "mail-sender-email": "openstack-core@griddynamics.com",
+    "mail-server": "smtp.gmail.com",
+    "mail-sender-name": "robot",
+    "mail-smtp-username": "altai-test@griddynamics.com",
+    "mail-smtp-password": "zaDeik4f",
+    "mail-smtp-tls": true,
+    "mail-smtp-port": "587"
+}
