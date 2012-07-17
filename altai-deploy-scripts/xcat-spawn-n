@@ -45,7 +45,17 @@ mount -n -t sysfs none "$MNT"/sys
 echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
 service sshd stop
 chroot "$MNT" /bin/bash -c "service sshd start"
+chroot "$MNT" /bin/bash -c "
+    killall udevd
+    udevd --daemon
+    udevadm trigger --type=failed -v
+    udevadm trigger --type=subsystems --action=add
+    udevadm trigger --type=devices --action=add
+    udevadm settle --timeout=60
+"
+
 ' || exit 255
+
 echo "$NODE_NAME: ready!"
 
 exit 0
