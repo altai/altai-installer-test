@@ -52,7 +52,7 @@ case "PARAM" in
         retcode=$?
         clean
         ;;
-    mastercompute)
+    *)
         echo "Creating new HW machine on $NODE_NAME"
         echo "Installing as master+compute node"
         deploy_install_script
