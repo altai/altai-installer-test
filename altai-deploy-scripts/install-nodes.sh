@@ -127,11 +127,11 @@ config_installer() {
 }
 
 install_master() {
-        exec_remote "cd ~/$INSTALLER_DIR ; echo 'Showing master-node.json:'; cat master-node.json ; ./install.sh master ; retcode=$?; echo 'Exit code: $retcode'; cat install.log; exit $retcode"
+        exec_remote "cd ~/$INSTALLER_DIR ; echo 'Showing master-node.json:'; cat master-node.json ; ./install.sh master ; retcode=$?; echo 'Exit code: $retcode'; exit $retcode"
 }
 
 install_node() {
-        exec_remote "cd ~/$INSTALLER_DIR  ; echo 'Showing compute-node.json:'; cat compute-node.json ; ./install.sh compute; retcode=$?; cat install.log; exit $retcode "
+        exec_remote "cd ~/$INSTALLER_DIR  ; echo 'Showing compute-node.json:'; cat compute-node.json ; ./install.sh compute; retcode=$?; exit $retcode "
 }
 
 spawn_hw_node() {
@@ -183,7 +183,9 @@ check_master() {
         check_ports
         # wget
         echo "Checking web UI title:"
-        wget -qO - $MASTER_NODE_IP | grep "Altai Private Cloud" || die "Web UI ERROR"
+        wget -qO - http://$NODE_IP:80 | grep "Altai Private Cloud" || die "Web UI ERROR"
+        echo "Checking nova-manage:"
+        exec_remote "nova-manage service list | grep enabled | grep compute | grep $NODE_NAME" || die "Compute service error"
 }
 
 check_node() {
