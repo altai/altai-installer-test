@@ -48,7 +48,9 @@ nova-xvpvncproxy
 nova-billing-heart
 nova-billing-os-amqp
 rabbitmq-server
-keystone"
+keystone
+pdns
+nova-dns"
 
 MASTER_TCP_PORTS="80
 5000"
@@ -56,7 +58,6 @@ MASTER_TCP_PORTS="80
 MASTER_UDP_PORTS="53"
 
 COMPUTE_SERVICES="ntpd
-messagebus
 libvirtd
 nova-compute"
 
@@ -177,20 +178,22 @@ check_services() {
 check_ports() {
         echo "Checking open ports..."
         for port in $TCP_PORTS; do
-            retcode=0
-            exec_remote "netstat -anp | grep -i 'tcp.*LISTEN'| grep ':$port'" || retcode=1
+            retcode1=0
+            exec_remote "netstat -anp | grep -i 'tcp.*LISTEN'| grep ':$port'" || retcode1=1
             if [ $retcode -eq 0 ]; then  echo "TCP Port: $port - ok"
             else die "TCP Port: $port - NOT listening";
             fi
         done
 
         for port in $UDP_PORTS; do
-            retcode=0
-            exec_remote "netstat -anp | grep -i 'udp.*0\:\*' | grep ':$port'" || retcode=1
+            retcode2=0
+            exec_remote "netstat -anp | grep -i 'udp.*0\:\*' | grep ':$port' | grep -v 'dnsmasq'" || retcode2=1
             if [ $retcode -eq 0 ]; then  echo "UDP Port: $port - ok"
             else die "UDP Port:$port - NOT listening";
             fi
         done
+        retcode=1
+        [ $retcode1 -eq 0 ] && [ $retcode2 -eq 0 ] && retcode=0
 }
 
 
@@ -246,7 +249,7 @@ case "$PARAM" in
     full)
 #        export $SSH_KEY
         show_info
-        spawn_master && get_installer && config_installer && install_master && check_master || retcode=1
+        spawn_master && get_installer && config_installer && install_master && check_master && check_node || retcode=1
 #        spawn_node && get_installer && config_installer && install_node && check_node || retcode=1
 
         ;;
