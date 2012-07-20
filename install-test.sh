@@ -35,7 +35,7 @@ clean() {
 
 retcode=0
 
-case "PARAM" in
+case "$PARAM" in
     compute)
         echo "Creating new HW machine on $NODE_NAME"
         echo "Installing as compute node"
@@ -52,7 +52,7 @@ case "PARAM" in
         retcode=$?
         clean
         ;;
-    *)
+    master-compute)
         echo "Creating new HW machine on $NODE_NAME"
         echo "Installing as master+compute node"
         deploy_install_script
