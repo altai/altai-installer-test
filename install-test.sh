@@ -27,6 +27,9 @@ deploy_install_script() {
         echo $NODE_NAME > ./altai-deploy-scripts/node_name
         [[ $MNODE ]] && echo $MNODE > ./altai-deploy-scripts/use_master
         rsync -av "./altai-deploy-scripts" "$RUN_USER@$RUN_SERVER:~/"
+}
+
+clean() {
         rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master
 }
 
@@ -39,6 +42,7 @@ case "PARAM" in
         deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh compute"
         retcode=$?
+        clean
         ;;
     master)
         echo "Creating new HW machine on $NODE_NAME"
@@ -46,13 +50,15 @@ case "PARAM" in
         deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh master"
         retcode=$?
+        clean
         ;;
-    master-compute)
+    mastercompute)
         echo "Creating new HW machine on $NODE_NAME"
         echo "Installing as master+compute node"
         deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh full"
         retcode=$?
+        clean
         ;;
 
 esac
