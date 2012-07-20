@@ -21,7 +21,7 @@ NODE_IP=`lsdef $NODE_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
 
 
 # If we have full install we should set master ip to use_master param
-if [ -f "~/altai-deploy-scripts/use_master" ]; then
+if [ -e ~/altai-deploy-scripts/use_master ]; then
     MASTER_NAME=`cat ~/altai-deploy-scripts/use_master`
     MASTER_NODE_IP=`lsdef $MASTER_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
     sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
