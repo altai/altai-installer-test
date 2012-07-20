@@ -6,5 +6,5 @@
     "master-ip-private": "MASTER_NODE_IP",
     "master-ip-public": "MASTER_NODE_IP",
     "projects-interface": "eth0",
-    "dns-zone": "vkhomenko@griddyamics.com"
+    "dns-zone": "openstack-core.griddyamics.com"
 }
