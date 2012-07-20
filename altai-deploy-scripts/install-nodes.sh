@@ -8,16 +8,9 @@ VAR=${VAR:-VAL}
 INSTALLER_REPO=${INSTALLER_REPO:-"https://github.com/griddynamics/altai.git"}
 INSTALLER_VERSION=${INSTALLER_VERSION:-"v0.1"}
 INSTALLER_DIR=${INSTALLER_DIR:-"altai"}
-#MASTER_NET=172.18.36.0/24
-
-#MASTER_NODE_PUBLIC=172.18.36.123
-#COMPUTE1=172.18.36.124
-#COMPUTE2=172.18.36.125
-
-#SSH_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQC+CvHo/7GsS7OvRF/eRx3kpvCY0IsF0Yd129OJ/KH6O+/5wrWjm4XmdhlxzIGTxYMYDzc//hkaypJ0AxrWHw3vmlTtAqrSyQIEKAcGuy4S53C7pBSRqSrURKb07BcJAh9C5qiRqgkLMKGodUb5k5edPEpmK6t+ZVe9ZqtOe0Vl7w== vkhomenko@griddynamics.com"
 [ -n "$SSH_KEY" ] || SSH_KEY=$(< ~/.ssh/id_rsa.pub)
 
-#ADMIN=`grep "admin-login-name"  master-node.json | sed 's/\s*"admin-login-name":\s\"//g' | sed 's/\",$//g'`
+
 ADMIN=`grep "admin-login-email"  master-node.json | sed 's/\s*"admin-login-email":\s\"//g' | sed 's/\",$//g'`
 PASSWORD=`grep "admin-login-password"  master-node.json | sed 's/\s*"admin-login-password":\s\"//g' | sed 's/\",$//g'`
 #MASTER_NODE_PUBLIC=`grep "master-ip-public"  master-node.json | sed 's/\s*"master-ip-public":\s\"//g' | sed 's/\",$//g'`
@@ -26,6 +19,7 @@ PASSWORD=`grep "admin-login-password"  master-node.json | sed 's/\s*"admin-login
 NODE_NAME=`cat ~/altai-deploy-scripts/node_name`
 echo "NODE_NAME=$NODE_NAME"
 MASTER_NODE_PUBLIC=`lsdef $NODE_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
+COMPUTE_NODE_PUBLIC=`lsdef $NODE_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
 echo "NODE_IP=$MASTER_NODE_PUBLIC"
 sed -i s/MASTER_NODE_IP/$MASTER_NODE_PUBLIC/ *.json
 
@@ -51,20 +45,15 @@ rabbitmq-server
 keystone
 pdns
 nova-dns"
-
 MASTER_TCP_PORTS="80
 5000"
-
 MASTER_UDP_PORTS="53"
 
 COMPUTE_SERVICES="ntpd
 libvirtd
 nova-compute"
-
-
 COMPUTE_TCP_PORTS="80
 5000"
-
 COMPUTE_UDP_PORTS="53"
 
 
@@ -160,8 +149,15 @@ spawn_master() {
 }
 
 spawn_node() {
-        RUN_SERVER=$COMPUTE1
-        HW_IPADDR=$COMPUTE1 HW_NAME="installer-test-compute1" ./xcat-spawn
+        echo "Showing compute-node.json:"; cat compute-node.json
+        RUN_SERVER=$COMPUTE_NODE_PUBLIC
+        HW_IPADDR=$COMPUTE_NODE_PUBLIC
+        HW_NAME="installer-test-node" 
+        ./xcat-spawn-n $NODE_NAME
+
+
+#        RUN_SERVER=$COMPUTE1
+#        HW_IPADDR=$COMPUTE1 HW_NAME="installer-test-compute1" ./xcat-spawn
 }
 
 check_services() {
@@ -212,6 +208,9 @@ check_master() {
 check_node() {
         SERVICES=$COMPUTE_SERVICES
         check_services
+        TCP_PORTS=$COMPUTE_TCP_PORTS
+        UDP_PORTS=$COMPUTE_UDP_PORTS
+        check_ports
 }
 
 
@@ -240,19 +239,22 @@ retcode=0
 #json_change "master-ip-private" "$MASTER_NODE_PRIVATE" "compute-node.json"
 
 case "$PARAM" in
-    clean)
-#        lxc-stop -n installer-test-compute1
-#        lxc-destroy -n installer-test-compute1
-#        lxc-stop -n installer-test-master
-#        lxc-destroy -n installer-test-master
-        ;;
     full)
-#        export $SSH_KEY
         show_info
         spawn_master && get_installer && config_installer && install_master && check_master && check_node || retcode=1
-#        spawn_node && get_installer && config_installer && install_node && check_node || retcode=1
 
         ;;
+    master)  ## It's not functional yet
+        
+        show_info
+        spawn_master && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        ;;
+
+    compute)
+        show_info
+        spawn_node && get_installer && config_installer && install_node && check_node || retcode=1
+        ;;
+
     *)
         echo "Unknown parameter"
         ;;

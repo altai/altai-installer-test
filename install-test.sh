@@ -6,6 +6,7 @@ RUN_USER="jenkins"
 RUN_SERVER="openstack-xcat.vm.griddynamics.net"
 
 PARAM=$1
+NODE_NAME=$2
 shift
 
 if [ $# -ge 1  ]; then
@@ -33,13 +34,28 @@ deploy_install_script() {
 retcode=0
 
 case "PARAM" in
-    *)
-        
+    compute)
+        echo "Creating new HW machine on $NODE_NAME"
+        echo "Installing as compute node"
         deploy_install_script
-#        exec_remote "~/altai-deploy-scripts/install-nodes.sh clean"
+        exec_remote "~/altai-deploy-scripts/install-nodes.sh compute"
+        retcode=$?
+        ;;
+    master)
+        echo "Creating new HW machine on $NODE_NAME"
+        echo "Installing as master node"
+        deploy_install_script
+        exec_remote "~/altai-deploy-scripts/install-nodes.sh master"
+        retcode=$?
+        ;;
+    *)
+        echo "Creating new HW machine on $NODE_NAME"
+        echo "Installing as master+compute node"
+        deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh full"
         retcode=$?
-    ;;
+        ;;
+
 esac
 
 exit $retcode
