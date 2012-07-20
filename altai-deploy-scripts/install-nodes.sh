@@ -10,22 +10,28 @@ INSTALLER_VERSION=${INSTALLER_VERSION:-"v0.1"}
 INSTALLER_DIR=${INSTALLER_DIR:-"altai"}
 [ -n "$SSH_KEY" ] || SSH_KEY=$(< ~/.ssh/id_rsa.pub)
 
-
 ADMIN=`grep "admin-login-email"  master-node.json | sed 's/\s*"admin-login-email":\s\"//g' | sed 's/\",$//g'`
 PASSWORD=`grep "admin-login-password"  master-node.json | sed 's/\s*"admin-login-password":\s\"//g' | sed 's/\",$//g'`
-#MASTER_NODE_PUBLIC=`grep "master-ip-public"  master-node.json | sed 's/\s*"master-ip-public":\s\"//g' | sed 's/\",$//g'`
+
+
 
 #-----------
 NODE_NAME=`cat ~/altai-deploy-scripts/node_name`
-echo "NODE_NAME=$NODE_NAME"
-MASTER_NODE_PUBLIC=`lsdef $NODE_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
-COMPUTE_NODE_PUBLIC=`lsdef $NODE_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
-echo "NODE_IP=$MASTER_NODE_PUBLIC"
-sed -i s/MASTER_NODE_IP/$MASTER_NODE_PUBLIC/ *.json
+NODE_IP=`lsdef $NODE_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
+
+
+# If we have full install we should set master ip to use_master param
+if [ -f "~/altai-deploy-scripts/use_master" ]; then
+    MASTER_NAME=`cat ~/altai-deploy-scripts/use_master`
+    MASTER_NODE_IP=`lsdef $MASTER_NAME -i ip | grep "ip=" | awk -F"=" {'print $2'}`
+    sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
+else
+    sed -i s/MASTER_NODE_IP/$NODE_IP/ *.json
+fi
 
 #-----------
 RUN_USER=root
-export RUN_SERVER=$MASTER_NODE_PUBLIC
+export RUN_SERVER=$NODE_IP
 
 MASTER_SERVICES="memcached
 focus
@@ -128,37 +134,12 @@ install_node() {
         exec_remote "cd ~/$INSTALLER_DIR  ; echo 'Showing compute-node.json:'; cat compute-node.json ; ./install.sh compute; retcode=$?; cat install.log; exit $retcode "
 }
 
-spawn_master() {
-        echo "Showing master-node.json:"; cat master-node.json
-        #RUN_SERVER=$MASTER_NODE_PUBLIC
-        #HW_IPADDR=$MASTER_NODE_PUBLIC HW_NAME="installer-test-master" ./xcat-spawn
-        
-        #NODE_NAME=`cat ~/altai-deploy-scripts/node_name`
-        RUN_SERVER=$MASTER_NODE_PUBLIC
-        HW_IPADDR=$MASTER_NODE_PUBLIC
-        HW_NAME="installer-test-master" 
+spawn_hw_node() {
+        echo "Spawning HW node $NODE_NAME"
+        RUN_SERVER=$NODE_IP
         ./xcat-spawn-n $NODE_NAME
-        
-        # NODE_NAME=`cat ~/altai-deploy-scripts/node_name`
-        # rsetboot $NODE_NAME net
-        # rpower $NODE_NAME reset
-        # echo -n "$NODE_NAME: booting"
-        # until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
-        # echo "."
-        # echo "$NODE_NAME: ready!"
 }
 
-spawn_node() {
-        echo "Showing compute-node.json:"; cat compute-node.json
-        RUN_SERVER=$COMPUTE_NODE_PUBLIC
-        HW_IPADDR=$COMPUTE_NODE_PUBLIC
-        HW_NAME="installer-test-node" 
-        ./xcat-spawn-n $NODE_NAME
-
-
-#        RUN_SERVER=$COMPUTE1
-#        HW_IPADDR=$COMPUTE1 HW_NAME="installer-test-compute1" ./xcat-spawn
-}
 
 check_services() {
         echo "Checking services... "
@@ -202,7 +183,7 @@ check_master() {
         check_ports
         # wget
         echo "Checking web UI title:"
-        wget -qO - $MASTER_NODE_PUBLIC:8080 | grep "Altai Private Cloud" || die "Web UI ERROR"
+        wget -qO - $MASTER_NODE_IP | grep "Altai Private Cloud" || die "Web UI ERROR"
 }
 
 check_node() {
@@ -219,7 +200,7 @@ success() {
         echo ""
         echo "------------------------------------------"
         echo "   Try it here:"
-        echo "   URL:            http://$MASTER_NODE_PUBLIC:8080"
+        echo "   URL:            http://$MASTER_NODE_IP"
         echo "   Login:          $ADMIN"
         echo "   Password:       $PASSWORD"
 }
@@ -241,18 +222,19 @@ retcode=0
 case "$PARAM" in
     full)
         show_info
-        spawn_master && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        success
 
         ;;
     master)  ## It's not functional yet
-        
         show_info
-        spawn_master && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        success
         ;;
 
     compute)
         show_info
-        spawn_node && get_installer && config_installer && install_node && check_node || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_node && check_node || retcode=1
         ;;
 
     *)
@@ -260,11 +242,10 @@ case "$PARAM" in
         ;;
 esac
 
-if [ $retcode -eq 0 ]; then 
+
+if [ $retcode -eq 0 ]; then
     echo "Installation Successful"
-    success
 else
     echo "Installation failed. Try to debug"
-    success
 fi
 exit $retcode

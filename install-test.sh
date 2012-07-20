@@ -14,21 +14,20 @@ if [ $# -ge 1  ]; then
 else
         ENV=""
 fi
-
 shift
 
 exec_remote() {
         ssh "$RUN_USER"@"$RUN_SERVER" "$@"
-
 }
 
 deploy_install_script() {
-        sudo yum install -y rsync
         echo "REPO_PATH="$REPO_PATH
         echo $REPO_PATH > ./altai-deploy-scripts/repo_path
         echo "NODE_NAME="$NODE_NAME
         echo $NODE_NAME > ./altai-deploy-scripts/node_name
+        [[ $MNODE ]] && echo $MNODE > ./altai-deploy-scripts/use_master
         rsync -av "./altai-deploy-scripts" "$RUN_USER@$RUN_SERVER:~/"
+        rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master
 }
 
 retcode=0
@@ -48,7 +47,7 @@ case "PARAM" in
         exec_remote "~/altai-deploy-scripts/install-nodes.sh master"
         retcode=$?
         ;;
-    *)
+    master-compute)
         echo "Creating new HW machine on $NODE_NAME"
         echo "Installing as master+compute node"
         deploy_install_script
