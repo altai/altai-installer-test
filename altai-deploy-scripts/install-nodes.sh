@@ -1,5 +1,8 @@
 #!/bin/bash -x
 
+PARAM=$1
+shift
+
 cd "$(dirname $0)"
 
 #DIRTY INSTALLER TEST SCRIPT
@@ -58,13 +61,9 @@ MASTER_UDP_PORTS="53"
 COMPUTE_SERVICES="ntpd
 libvirtd
 nova-compute"
-COMPUTE_TCP_PORTS="80
-5000"
-COMPUTE_UDP_PORTS="53"
+COMPUTE_TCP_PORTS="22"
+COMPUTE_UDP_PORTS="123"
 
-
-PARAM=$1
-shift
 
 if [ $# -ge 1  ]; then
         ENV=$1
