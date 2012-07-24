@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Starting script $0 $@"
 
 PARAM=$1
 shift
@@ -77,9 +78,14 @@ shift
 REPO="openstack-$OS"
 
 die() {
-        echo "$1"
+        log "$1"
         return 1
 }
+
+log() {
+        echo "    $#"
+}
+
 
 
 exec_remote() {
@@ -93,7 +99,7 @@ exec_in_dir() {
 
 
 setup_env_repo() {
-        echo "Setting YUM repo on test server to environment: $ENV"
+        log "Setting YUM repo on test server to environment: $ENV"
         if [ "$ENV" == "master" ]; then
                 REPO_PATH="/unstable"
         else
@@ -113,9 +119,8 @@ json_change() {
 }
 
 get_installer() {
-        pwd
         REPO_PATH=`cat ~/altai-deploy-scripts/repo_path`
-        echo "REPO_PATH_1="${REPO_PATH}
+        log "Cloning installer from $INSTALLER_REPO on host $RUN_SERVER"
         exec_remote "yum -y install git"
         exec_remote "git clone $INSTALLER_REPO && cd $INSTALLER_DIR && git checkout $INSTALLER_VERSION && \
         sed -i 's#http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm#${REPO_PATH}#g' ~/$INSTALLER_DIR/cookbooks/devgrid/attributes/default.rb "
@@ -126,37 +131,42 @@ config_installer() {
 }
 
 install_master() {
+        log "Running ./install.sh master on $RUN_SERVER"
         exec_remote "cd ~/$INSTALLER_DIR ; echo 'Showing master-node.json:'; cat master-node.json ; ./install.sh master ; retcode=$?; echo 'Exit code: $retcode'; exit $retcode"
+        log "Done, exit code: $retcode"
 }
 
 install_node() {
+        log "Running ./install.sh compute on $RUN_SERVER"
         exec_remote "cd ~/$INSTALLER_DIR  ; echo 'Showing compute-node.json:'; cat compute-node.json ; ./install.sh compute; retcode=$?; exit $retcode "
+        log "Done, exit code: $retcode"
 }
 
 spawn_hw_node() {
-        echo "Spawning HW node $NODE_NAME"
+        log "Spawning HW node $NODE_NAME"
         RUN_SERVER=$NODE_IP
         ./xcat-spawn-n $NODE_NAME
+        log "Done, exit code: $retcode"
 }
 
 
 check_services() {
-        echo "Checking services... "
+        log "Checking services... "
         for service in $SERVICES; do
             retcode=0
             exec_remote "ps aux | grep -v grep | grep  "$service" >/dev/null" || retcode=1
-            if [ $retcode -eq 0 ]; then  echo "Service: $service - ok"
+            if [ $retcode -eq 0 ]; then  log "Service: $service - ok"
             else die "Service: $service - NOT running";
             fi
         done
 }
 
 check_ports() {
-        echo "Checking open ports..."
+        log "Checking open ports..."
         for port in $TCP_PORTS; do
             retcode1=0
             exec_remote "netstat -anp | grep -i 'tcp.*LISTEN'| grep ':$port'" || retcode1=1
-            if [ $retcode -eq 0 ]; then  echo "TCP Port: $port - ok"
+            if [ $retcode -eq 0 ]; then  log "TCP Port: $port - ok"
             else die "TCP Port: $port - NOT listening";
             fi
         done
@@ -164,7 +174,7 @@ check_ports() {
         for port in $UDP_PORTS; do
             retcode2=0
             exec_remote "netstat -anp | grep -i 'udp.*0\:\*' | grep ':$port' | grep -v 'dnsmasq'" || retcode2=1
-            if [ $retcode -eq 0 ]; then  echo "UDP Port: $port - ok"
+            if [ $retcode -eq 0 ]; then  log "UDP Port: $port - ok"
             else die "UDP Port:$port - NOT listening";
             fi
         done
@@ -181,9 +191,9 @@ check_master() {
         UDP_PORTS=$MASTER_UDP_PORTS
         check_ports
         # wget
-        echo "Checking web UI title:"
+        log "Checking web UI title:"
         wget -qO - http://$NODE_IP:80 | grep "Altai Private Cloud" || die "Web UI ERROR"
-        echo "Checking nova-manage:"
+        log "Checking nova-manage:"
         exec_remote "nova-manage service list | grep enabled | grep compute | grep $NODE_NAME" || die "Compute service error"
 }
 
@@ -197,18 +207,18 @@ check_node() {
 
 
 success() {
-        echo ""
-        echo ""
-        echo "------------------------------------------"
-        echo "   Try it here:"
-        echo "   URL:            http://$MASTER_NODE_IP"
-        echo "   Login:          $ADMIN"
-        echo "   Password:       $PASSWORD"
+        log ""
+        log ""
+        log "------------------------------------------"
+        log "   Try it here:"
+        log "   URL:            http://$MASTER_NODE_IP"
+        log "   Login:          $ADMIN"
+        log "   Password:       $PASSWORD"
 }
 
 show_info() {
         retcode=$?
-        echo "Privious task exit code: $retcode"
+        log "Privious task exit code: $retcode"
 }
 
 retcode=0
@@ -219,6 +229,9 @@ retcode=0
 # FIXME: why was it commented out?
 #json_change "master-ip-private" "$MASTER_NODE_PRIVATE" "master-node.json"
 #json_change "master-ip-private" "$MASTER_NODE_PRIVATE" "compute-node.json"
+
+
+
 
 case "$PARAM" in
     full)
@@ -239,14 +252,16 @@ case "$PARAM" in
         ;;
 
     *)
-        echo "Unknown parameter"
+        log "Unknown parameter"
         ;;
 esac
 
 
 if [ $retcode -eq 0 ]; then
-    echo "Installation Successful"
+    log "Installation Successful"
 else
-    echo "Installation failed. Try to debug"
+    log "Installation failed. Try to debug"
 fi
-exit $retcode
+
+log "Exiting with code: $retcode"
+exit $retcode 

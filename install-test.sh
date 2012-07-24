@@ -1,4 +1,5 @@
 #!/bin/bash
+log "Starting script $0 $@"
 
 cd "$(dirname $0)"
 
@@ -20,10 +21,14 @@ exec_remote() {
         ssh "$RUN_USER"@"$RUN_SERVER" "$@"
 }
 
+log() {
+        echo "    $#"
+}
+
 deploy_install_script() {
-        echo "REPO_PATH="$REPO_PATH
+        log "Using repo: "$REPO_PATH
         echo $REPO_PATH > ./altai-deploy-scripts/repo_path
-        echo "NODE_NAME="$NODE_NAME
+        echo "Deploying to node: "$NODE_NAME
         echo $NODE_NAME > ./altai-deploy-scripts/node_name
         [[ $MNODE ]] && echo $MNODE > ./altai-deploy-scripts/use_master
         rsync -av "./altai-deploy-scripts" "$RUN_USER@$RUN_SERVER:~/"
@@ -35,35 +40,34 @@ clean() {
 
 retcode=0
 
+
+
 case "$PARAM" in
     compute)
-        echo "Creating new HW machine on $NODE_NAME"
-        echo "Installing as compute node"
+        log "Running install compute script machine $NODE_NAME"
         deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh compute"
         retcode=$?
         clean
         ;;
     master)
-        echo "Creating new HW machine on $NODE_NAME"
-        echo "Installing as master node"
+        log "Running install master script machine $NODE_NAME"
         deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh master"
         retcode=$?
         clean
         ;;
     master-compute)
-        echo "Creating new HW machine on $NODE_NAME"
-        echo "Installing as master+compute node"
+        log "Running install master+compute script machine $NODE_NAME"
         deploy_install_script
         exec_remote "~/altai-deploy-scripts/install-nodes.sh full"
         retcode=$?
         clean
         ;;
     *)
-        echo "Wrong parameter"
+        log "Wrong parameter"
         exit 1
         ;;
 esac
-
+log "Exiting with code: $retcode"
 exit $retcode
