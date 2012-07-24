@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 PARAM=$1
 shift
