@@ -1,5 +1,5 @@
 #!/bin/bash
-log "Starting script $0 $@"
+echo "Starting script $0 $@"
 
 cd "$(dirname $0)"
 
@@ -22,7 +22,7 @@ exec_remote() {
 }
 
 log() {
-        echo "    $#"
+        echo "    $1 $2 $3"
 }
 
 deploy_install_script() {
