@@ -60,7 +60,10 @@ case "$PARAM" in
         retcode=$?
         clean
         ;;
-
+    *)
+        echo "Wrong parameter"
+        exit 1
+        ;;
 esac
 
 exit $retcode
