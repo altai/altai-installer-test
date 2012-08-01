@@ -64,6 +64,9 @@ case "$PARAM" in
         retcode=$?
         clean
         ;;
+    upload-image)
+        exec_remote "~/altai-deploy-scripts/install-nodes.sh upload-image"
+        ;;
     *)
         log "Wrong parameter"
         exit 1

@@ -221,6 +221,12 @@ show_info() {
         log "Privious task exit code: $retcode"
 }
 
+upload_image() {
+        exec_remote "wget http://osc-build.vm.griddynamics.net/images/mini_image.img"
+        exec_remote 'OS_USERNAME="admin" && OS_PASSWORD="topsecret" && OS_TENANT_NAME="systenant" && OS_AUTH_URL="http://172.18.40.107:5000/v2.0/" && OS_COMPUTE_API_VERSION="1.1" && OS_AUTH_STRATEGY="keystone" && NOVA_VERSION=1.1 && USE_KEYSTONE=true && glance add name="test-suite-image" disk_format=qcow2 container_format=ovf <mini_image.img'
+}
+
+
 retcode=0
 
 #json_change "master-ip-public" "$MASTER_NODE_PUBLIC" "master-node.json"
@@ -251,6 +257,9 @@ case "$PARAM" in
         spawn_hw_node && get_installer && config_installer && install_node && check_node || retcode=1
         ;;
 
+    upload-image)
+        upload_image
+        ;;
     *)
         log "Unknown parameter"
         ;;
