@@ -36,6 +36,7 @@ deploy_install_script() {
 
 clean() {
         rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master
+        exec_remote "rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master"
 }
 
 retcode=0
