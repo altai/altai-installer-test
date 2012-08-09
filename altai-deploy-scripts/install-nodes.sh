@@ -86,6 +86,12 @@ log() {
         echo "    $1 $2 $3"
 }
 
+draw_line() {
+        echo "_______________________________________________________________________________________________"
+        echo "==============================================================================================="
+        echo ""
+        echo ""
+}
 
 
 exec_remote() {
@@ -165,7 +171,7 @@ check_ports() {
         log "Checking open ports..."
         for port in $TCP_PORTS; do
             retcode1=0
-            exec_remote "netstat -anp | grep -i 'tcp.*LISTEN'| grep ':$port'" || retcode1=1
+            exec_remote "netstat -anp | grep -i 'tcp.*LISTEN'| grep ':$port'>/dev/null" || retcode1=1
             if [ $retcode -eq 0 ]; then  log "TCP Port: $port - ok"
             else die "TCP Port: $port - NOT listening";
             fi
@@ -173,7 +179,7 @@ check_ports() {
 
         for port in $UDP_PORTS; do
             retcode2=0
-            exec_remote "netstat -anp | grep -i 'udp.*0\:\*' | grep ':$port' | grep -v 'dnsmasq'" || retcode2=1
+            exec_remote "netstat -anp | grep -i 'udp.*0\:\*' | grep ':$port' | grep -v 'dnsmasq'>/dev/null" || retcode2=1
             if [ $retcode -eq 0 ]; then  log "UDP Port: $port - ok"
             else die "UDP Port:$port - NOT listening";
             fi
@@ -185,6 +191,7 @@ check_ports() {
 
 
 check_master() {
+        draw_line
         SERVICES=$MASTER_SERVICES
         check_services
         TCP_PORTS=$MASTER_TCP_PORTS
@@ -194,7 +201,7 @@ check_master() {
         log "Checking web UI title:"
         wget -qO - http://$NODE_IP:80 | grep "Altai Private Cloud" || die "Web UI ERROR"
         log "Checking nova-manage:"
-        exec_remote "nova-manage service list | grep enabled | grep compute | grep $NODE_NAME" || die "Compute service error"
+        exec_remote "nova-manage service list | grep enabled | grep compute | grep $NODE_NAME>/dev/null" || die "Compute service error. No node $NODE_NAME seen by nova-manage"
 }
 
 check_node() {
@@ -207,9 +214,7 @@ check_node() {
 
 
 success() {
-        log ""
-        log ""
-        log "------------------------------------------"
+        draw_line
         log "   Try it here:"
         log "   URL:            http://$MASTER_NODE_IP"
         log "   Login:          $ADMIN"
@@ -225,6 +230,7 @@ upload_image() {
         exec_remote "wget http://osc-build.vm.griddynamics.net/images/mini_image.img"
         exec_remote 'OS_USERNAME="admin" && OS_PASSWORD="topsecret" && OS_TENANT_NAME="systenant" && OS_AUTH_URL="http://172.18.40.107:5000/v2.0/" && OS_COMPUTE_API_VERSION="1.1" && OS_AUTH_STRATEGY="keystone" && NOVA_VERSION=1.1 && USE_KEYSTONE=true && glance add name="test-suite-image" disk_format=qcow2 container_format=ovf <mini_image.img'
 }
+
 
 
 retcode=0
