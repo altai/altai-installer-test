@@ -31,12 +31,14 @@ deploy_install_script() {
         echo "Deploying to node: "$NODE_NAME
         echo $NODE_NAME > ./altai-deploy-scripts/node_name
         [[ $MNODE ]] && echo $MNODE > ./altai-deploy-scripts/use_master
-        rsync -av "./altai-deploy-scripts" "$RUN_USER@$RUN_SERVER:~/"
+        [[ $INSTALLER_VERSION ]] && echo $INSTALLER_VERSION > ./altai-deploy-scripts/INSTALLER_VERSION
+        echo "INSTALLER_VERSION="$INSTALLER_VERSION
+	rsync -av "./altai-deploy-scripts" "$RUN_USER@$RUN_SERVER:~/"
 }
 
 clean() {
-        rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master
-        exec_remote "rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master"
+        rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master ./altai-deploy-scripts/INSTALLER_VERSION
+        exec_remote "rm -f ./altai-deploy-scripts/repo_path ./altai-deploy-scripts/node_name ./altai-deploy-scripts/use_master ./altai-deploy-scripts/INSTALLER_VERSION"
 }
 
 retcode=0

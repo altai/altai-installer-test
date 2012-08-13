@@ -8,9 +8,12 @@ cd "$(dirname $0)"
 
 #DIRTY INSTALLER TEST SCRIPT
 VAR=${VAR:-VAL}
+INSTALLER_VERSION=`cat ~/altai-deploy-scripts/INSTALLER_VERSION`
 
 INSTALLER_REPO=${INSTALLER_REPO:-"https://github.com/griddynamics/altai.git"}
 INSTALLER_VERSION=${INSTALLER_VERSION:-"v0.1"}
+echo "Installer version to use: "$INSTALLER_VERSION
+
 INSTALLER_DIR=${INSTALLER_DIR:-"altai"}
 [ -n "$SSH_KEY" ] || SSH_KEY=$(< ~/.ssh/id_rsa.pub)
 
