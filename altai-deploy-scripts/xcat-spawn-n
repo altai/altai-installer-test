@@ -6,13 +6,14 @@ echo "XCAT-SPAWN-N: spawning "$NODE_NAME
 
 [ -n "$HW_SSHKEY" ] || HW_SSHKEY=$(< ./add_keys)
 
-#TODO remove setnet job at all
-cat >/install/postscripts/altai_prepare <<"EOF"
+cat >/install/postscripts/altai_prepare <<EOF
 #!/bin/sh
 set -ex
 
 echo "$HW_SSHKEY" >> /root/.ssh/authorized_keys
+EOF
 
+cat >>/install/postscripts/altai_prepare <<EOF
 DISK="/dev/sda"
 MNT="/mnt/sys"
 
