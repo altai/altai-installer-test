@@ -54,7 +54,7 @@ chroot "$MNT" /bin/bash -c "
 EOF
 
 echo "$NODE_NAME: config file created"
-chdef $NODE_NAME postscripts=altai_prepare,altay_chroot
+chdef $NODE_NAME postscripts=altai_prepare,altai_chroot
 rsetboot $NODE_NAME net
 rpower $NODE_NAME reset
 echo -n "$NODE_NAME: booting"
