@@ -7,31 +7,20 @@ echo "XCAT-SPAWN-N: spawning "$NODE_NAME
 [ -n "$HW_SSHKEY" ] || HW_SSHKEY=$(< ./add_keys)
 
 #TODO remove setnet job at all
-cat >/install/postscripts/setnet <<EOF
+cat >/install/postscripts/altai_prepare <<EOF
 #!/bin/sh
-mount -o remount,size=1000m /tmp
-mount -o remount,size=1000m /var/tmp
-echo "$HW_SSHKEY" >> /root/.ssh/authorized_keys
-EOF
-
-echo "$NODE_NAME: config file created"
-rsetboot $NODE_NAME net
-rpower $NODE_NAME reset
-echo -n "$NODE_NAME: booting"
-until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
-echo "."
-echo "$NODE_NAME: configuring "
-
-ssh root@$NODE_NAME '
 set -ex
+
+echo "$HW_SSHKEY" >> /root/.ssh/authorized_keys
 
 DISK="/dev/sda"
 MNT="/mnt/sys"
 
-sfdisk "$DISK" -uM <<EOF
+sfdisk "$DISK" -uM <<EOSFDISK
 1,10000,83
 ,4000,82
-EOF
+EOSFDISK
+
 mkfs.ext3 "${DISK}1"
 mkswap "${DISK}2"
 swapon "${DISK}2" 
@@ -39,13 +28,21 @@ mkdir -p "$MNT"
 mount "${DISK}1" "$MNT"
 
 tar --one-file-system -cpf - / | tar --warning=no-timestamp -xpf - -C "$MNT"
+echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
+EOF
+
+cat >/install/postscripts/altai_chroot <<EOF
+set -ex
+
+DISK="/dev/sda"
+MNT="/mnt/sys"
+
 mount -t proc none "$MNT"/proc
 mount --rbind /dev "$MNT"/dev
 mount -n -t sysfs none "$MNT"/sys
-echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
 service sshd stop
-chroot "$MNT" /bin/bash -c "service sshd start"
 chroot "$MNT" /bin/bash -c "
+    service sshd start
     killall udevd
     udevd --daemon
     udevadm trigger --type=failed -v
@@ -53,9 +50,16 @@ chroot "$MNT" /bin/bash -c "
     udevadm trigger --type=devices --action=add
     udevadm settle --timeout=60
 "
+EOF
 
-' || exit 255
-
+echo "$NODE_NAME: config file created"
+chdef $NODE_NAME postscripts=altai_prepare,altay_chroot
+rsetboot $NODE_NAME net
+rpower $NODE_NAME reset
+echo -n "$NODE_NAME: booting"
+until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
+echo "."
+chdef $NODE_NAME postscripts=altay_chroot
 echo "$NODE_NAME: ready!"
 
 exit 0
