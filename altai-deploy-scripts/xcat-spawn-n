@@ -38,6 +38,9 @@ set -ex
 DISK="/dev/sda"
 MNT="/mnt/sys"
 
+mkdir -p "$MNT"
+mount "$DISK"1 "$MNT"
+
 mount -t proc none "$MNT"/proc
 mount --rbind /dev "$MNT"/dev
 mount -n -t sysfs none "$MNT"/sys
