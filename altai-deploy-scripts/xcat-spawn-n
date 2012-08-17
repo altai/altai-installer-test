@@ -7,7 +7,7 @@ echo "XCAT-SPAWN-N: spawning "$NODE_NAME
 [ -n "$HW_SSHKEY" ] || HW_SSHKEY=$(< ./add_keys)
 
 #TODO remove setnet job at all
-cat >/install/postscripts/altai_prepare <<EOF
+cat >/install/postscripts/altai_prepare <<"EOF"
 #!/bin/sh
 set -ex
 
@@ -31,7 +31,7 @@ tar --one-file-system -cpf - / | tar --warning=no-timestamp -xpf - -C "$MNT"
 echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
 EOF
 
-cat >/install/postscripts/altai_chroot <<EOF
+cat >/install/postscripts/altai_chroot <<"EOF"
 set -ex
 
 DISK="/dev/sda"
