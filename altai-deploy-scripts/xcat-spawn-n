@@ -13,7 +13,7 @@ set -ex
 echo "$HW_SSHKEY" >> /root/.ssh/authorized_keys
 EOF
 
-cat >>/install/postscripts/altai_prepare <<EOF
+cat >>/install/postscripts/altai_prepare <<"EOF"
 DISK="/dev/sda"
 MNT="/mnt/sys"
 
