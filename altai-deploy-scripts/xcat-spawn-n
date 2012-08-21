@@ -30,6 +30,7 @@ mount "${DISK}1" "$MNT"
 
 tar --one-file-system -cpf - / | tar --warning=no-timestamp -xpf - -C "$MNT"
 echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
+umount "$MNT"
 EOF
 
 cat >/install/postscripts/altai_chroot <<"EOF"
