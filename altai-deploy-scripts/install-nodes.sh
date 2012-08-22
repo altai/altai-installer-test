@@ -222,7 +222,7 @@ reboot_node() {
         log "Rebooting node"
         exec_remote "reboot"
         log "Wait 100 seconds"
-        wait 100
+        sleep 100
 }
 
 success() {
