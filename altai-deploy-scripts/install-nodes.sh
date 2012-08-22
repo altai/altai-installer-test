@@ -207,6 +207,9 @@ check_master() {
         exec_remote "nova-manage service list | grep enabled | grep compute | grep $NODE_NAME>/dev/null" || die "Compute service error. No node $NODE_NAME seen by nova-manage"
 }
 
+
+
+
 check_node() {
         SERVICES=$COMPUTE_SERVICES
         check_services
@@ -215,6 +218,12 @@ check_node() {
         check_ports
 }
 
+reboot_node() {
+        log "Rebooting node"
+        exec_remote "reboot"
+        log "Wait 100 seconds"
+        wait 100
+}
 
 success() {
         draw_line
@@ -251,19 +260,19 @@ retcode=0
 case "$PARAM" in
     full)
         show_info
-        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node && reboot_node && check_master && check_node|| retcode=1
         success
 
         ;;
     master)  ## It's not functional yet
         show_info
-        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master && reboot_node && check_master || retcode=1
         success
         ;;
 
     compute)
         show_info
-        spawn_hw_node && get_installer && config_installer && install_node && check_node || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_node && check_node && reboot_node && check_node|| retcode=1
         ;;
 
     upload-image)
