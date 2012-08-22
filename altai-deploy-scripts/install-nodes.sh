@@ -260,19 +260,22 @@ retcode=0
 case "$PARAM" in
     full)
         show_info
-        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node && reboot_node && check_master && check_node|| retcode=1
+#        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node && reboot_node && check_master && check_node|| retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
         success
 
         ;;
     master)  ## It's not functional yet
         show_info
-        spawn_hw_node && get_installer && config_installer && install_master && check_master && reboot_node && check_master || retcode=1
+#        spawn_hw_node && get_installer && config_installer && install_master && check_master && reboot_node && check_master || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master || retcode=1
         success
         ;;
 
     compute)
         show_info
-        spawn_hw_node && get_installer && config_installer && install_node && check_node && reboot_node && check_node|| retcode=1
+#        spawn_hw_node && get_installer && config_installer && install_node && check_node && reboot_node && check_node|| retcode=1
+        spawn_hw_node && get_installer && config_installer && install_node && check_node || retcode=1
         ;;
 
     upload-image)
