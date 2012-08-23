@@ -185,7 +185,7 @@ check_ports() {
         for port in $TCP_PORTS; do
             retcode1=0
             exec_remote "netstat -anp | grep -i 'tcp.*LISTEN'| grep ':$port'>/dev/null" || retcode1=1
-            if [ $retcode -eq 0 ]; then  log "TCP Port: $port - ok"
+            if [ $retcode1 -eq 0 ]; then  log "TCP Port: $port - ok"
             else die "TCP Port: $port - NOT listening";
             fi
         done
@@ -193,7 +193,7 @@ check_ports() {
         for port in $UDP_PORTS; do
             retcode2=0
             exec_remote "netstat -anp | grep -i 'udp.*0\:\*' | grep ':$port' | grep -v 'dnsmasq'>/dev/null" || retcode2=1
-            if [ $retcode -eq 0 ]; then  log "UDP Port: $port - ok"
+            if [ $retcode2 -eq 0 ]; then  log "UDP Port: $port - ok"
             else die "UDP Port:$port - NOT listening";
             fi
         done
