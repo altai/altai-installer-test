@@ -14,7 +14,7 @@ set -ex
 echo "$HW_SSHKEY" >> /root/.ssh/authorized_keys
 EOF
 
-if [ "$OS_MODE" eq 'light' ]; then 
+if [ "$OS_MODE" = 'light' ]; then 
 cat >>/install/postscripts/altai_prepare <<"EOF"
 DISK="/dev/sda"
 MNT="/mnt/sys"
@@ -79,7 +79,7 @@ echo -n "$NODE_NAME: booting"
 until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
 echo "."
 
-if  [ "$OS_MODE" eq 'light' ]; then
+if  [ "$OS_MODE" = 'light' ]; then
     chdef $NODE_NAME postscripts=altay_chroot
 fi
 echo "$NODE_NAME: ready!"
