@@ -175,6 +175,7 @@ check_services() {
             else die "Service: $service - NOT running";
             fi
         done
+        return $retcode
 }
 
 check_ports() {
@@ -196,6 +197,7 @@ check_ports() {
         done
         retcode=1
         [ $retcode1 -eq 0 ] && [ $retcode2 -eq 0 ] && retcode=0
+        return $retcode
 }
 
 
@@ -212,7 +214,11 @@ check_master() {
         wget -qO - http://$NODE_IP:80 | grep "Altai Private Cloud" || die "Web UI ERROR"
         log "Checking nova-manage:"
         exec_remote "nova-manage service list | grep enabled | grep compute | grep $NODE_NAME>/dev/null" || die "Compute service error. No node $NODE_NAME seen by nova-manage"
+        return $retcode
 }
+
+
+
 
 check_node() {
         SERVICES=$COMPUTE_SERVICES
@@ -220,8 +226,15 @@ check_node() {
         TCP_PORTS=$COMPUTE_TCP_PORTS
         UDP_PORTS=$COMPUTE_UDP_PORTS
         check_ports
+        return $retcode
 }
 
+reboot_node() {
+        log "Rebooting node"
+        exec_remote "reboot"
+        log "Wait 100 seconds"
+        sleep 100
+}
 
 success() {
         draw_line
@@ -258,18 +271,21 @@ retcode=0
 case "$PARAM" in
     full)
         show_info
+#        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node && reboot_node && check_master && check_node|| retcode=1
         spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
         success
 
         ;;
     master)  ## It's not functional yet
         show_info
-        spawn_hw_node && get_installer && config_installer && install_master && check_master && check_node || retcode=1
+#        spawn_hw_node && get_installer && config_installer && install_master && check_master && reboot_node && check_master || retcode=1
+        spawn_hw_node && get_installer && config_installer && install_master && check_master || retcode=1
         success
         ;;
 
     compute)
         show_info
+#        spawn_hw_node && get_installer && config_installer && install_node && check_node && reboot_node && check_node|| retcode=1
         spawn_hw_node && get_installer && config_installer && install_node && check_node || retcode=1
         ;;
 
