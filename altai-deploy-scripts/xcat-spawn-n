@@ -3,7 +3,7 @@
 
 NODE_NAME=$1
 OS_MODE=$2
-echo "XCAT-SPAWN-N: spawning "$NODE_NAME
+echo "XCAT-SPAWN-N: spawning "$NODE_NAME", mode "$OS_MODE
 
 [ -n "$HW_SSHKEY" ] || HW_SSHKEY=$(< ./add_keys)
 
