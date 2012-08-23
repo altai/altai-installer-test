@@ -69,13 +69,13 @@ COMPUTE_TCP_PORTS="22"
 COMPUTE_UDP_PORTS="123"
 
 
-if [ $# -ge 1  ]; then
-        ENV=$1
-else
-        ENV="full"
-fi
-
-shift
+#if [ $# -ge 1  ]; then
+#        ENV=$1
+#else
+#        ENV="full"
+#fi
+#
+#shift
 
 if [ $# -ge 1  ]; then
         OS_MODE=$1
