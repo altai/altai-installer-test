@@ -8,6 +8,7 @@ RUN_SERVER="openstack-xcat.vm.griddynamics.net"
 
 PARAM=$1
 NODE_NAME=$2
+OS_MODE=$3
 shift
 
 if [ $# -ge 1  ]; then
@@ -63,7 +64,7 @@ case "$PARAM" in
     master-compute)
         log "Running install master+compute script machine $NODE_NAME"
         deploy_install_script
-        exec_remote "~/altai-deploy-scripts/install-nodes.sh full"
+        exec_remote "~/altai-deploy-scripts/install-nodes.sh full $OS_MODE"
         retcode=$?
         clean
         ;;

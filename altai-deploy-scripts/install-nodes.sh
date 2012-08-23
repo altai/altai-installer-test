@@ -77,6 +77,13 @@ fi
 
 shift
 
+if [ $# -ge 1  ]; then
+        OS_MODE=$1
+else
+        OS_MODE="light"
+fi
+
+
 
 REPO="openstack-$OS"
 
@@ -154,7 +161,7 @@ install_node() {
 spawn_hw_node() {
         log "Spawning HW node $NODE_NAME"
         RUN_SERVER=$NODE_IP
-        ./xcat-spawn-n $NODE_NAME
+        ./xcat-spawn-n $NODE_NAME $OS_MODE
         log "Done, exit code: $retcode"
 }
 
