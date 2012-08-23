@@ -89,6 +89,7 @@ REPO="openstack-$OS"
 
 die() {
         log "$1"
+        retcode=1
         return 1
 }
 
@@ -168,10 +169,11 @@ spawn_hw_node() {
 
 check_services() {
         log "Checking services... "
+        retcode=0
         for service in $SERVICES; do
-            retcode=0
+            retcode1=0
             exec_remote "ps aux | grep -v grep | grep  "$service" >/dev/null" || retcode=1
-            if [ $retcode -eq 0 ]; then  log "Service: $service - ok"
+            if [ $retcode1 -eq 0 ]; then  log "Service: $service - ok"
             else die "Service: $service - NOT running";
             fi
         done
