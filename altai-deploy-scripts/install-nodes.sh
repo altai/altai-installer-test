@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 echo "Starting script $0 $@"
 
 PARAM=$1
@@ -138,7 +138,7 @@ json_change() {
 get_installer() {
         REPO_PATH=`cat ~/altai-deploy-scripts/repo_path`
         log "Cloning installer from $INSTALLER_REPO on host $RUN_SERVER"
-        if [[ "x$INSTALLER_REPO" == "xaltai-installer.rpm" ]]
+        if [[ "x$INSTALLER_VERSION" == "xaltai-installer.rpm" ]]
         then
             exec_remote "yum -y install altai-installer"
 
