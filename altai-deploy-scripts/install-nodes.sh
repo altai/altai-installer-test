@@ -12,9 +12,9 @@ INSTALLER_VERSION=`cat ~/altai-deploy-scripts/INSTALLER_VERSION`
 
 INSTALLER_REPO=${INSTALLER_REPO:-"https://github.com/griddynamics/altai.git"}
 INSTALLER_VERSION=${INSTALLER_VERSION:-"v0.1"}
+INSTALLER_DIR="/opt/altai/"
 echo "Installer version to use: "$INSTALLER_VERSION
 
-INSTALLER_DIR=${INSTALLER_DIR:-"altai"}
 [ -n "$SSH_KEY" ] || SSH_KEY=$(< ~/.ssh/id_rsa.pub)
 
 ADMIN=`grep "admin-login-email"  master-node.json | sed 's/\s*"admin-login-email":\s\"//g' | sed 's/\",$//g'`
@@ -138,24 +138,33 @@ json_change() {
 get_installer() {
         REPO_PATH=`cat ~/altai-deploy-scripts/repo_path`
         log "Cloning installer from $INSTALLER_REPO on host $RUN_SERVER"
-        exec_remote "yum -y install git"
-        exec_remote "git clone $INSTALLER_REPO && cd $INSTALLER_DIR && git checkout $INSTALLER_VERSION && \
-        sed -i 's#http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm#${REPO_PATH}#g' ~/$INSTALLER_DIR/cookbooks/devgrid/attributes/default.rb "
+        if [[ "x$INSTALLER_REPO" == "xaltai-installer.rpm" ]]
+        then
+            exec_remote "yum -y install altai-installer"
+
+        else
+            exec_remote "yum -y install git altai-chef-gems"
+            exec_remote "cd /opt/; git clone $INSTALLER_REPO altai && cd altai && git checkout $INSTALLER_VERSION"
+        fi
+        exec_remote "cat > $INSTALLER_DIR/cookbooks/devgrid/attributes/default.rb" <<EOF
+default[:epel][:rpm_url] = "http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm"
+default[:altai][:rpm_url] = "$REPO_PATH"
+EOF
 }
 
 config_installer() {
-        rsync -av *.json "$RUN_USER"@"$RUN_SERVER":~/$INSTALLER_DIR/
+        rsync -av *.json "$RUN_USER"@"$RUN_SERVER":$INSTALLER_DIR/
 }
 
 install_master() {
         log "Running ./install.sh master on $RUN_SERVER"
-        exec_remote "cd ~/$INSTALLER_DIR ; echo 'Showing master-node.json:'; cat master-node.json ; ./install.sh master ; retcode=$?; echo 'Exit code: $retcode'; exit $retcode"
+        exec_remote "cd $INSTALLER_DIR ; echo 'Showing master-node.json:'; cat master-node.json ; ./install.sh master ; retcode=$?; echo 'Exit code: $retcode'; exit $retcode"
         log "Done, exit code: $retcode"
 }
 
 install_node() {
         log "Running ./install.sh compute on $RUN_SERVER"
-        exec_remote "cd ~/$INSTALLER_DIR  ; echo 'Showing compute-node.json:'; cat compute-node.json ; ./install.sh compute; retcode=$?; exit $retcode "
+        exec_remote "cd $INSTALLER_DIR  ; echo 'Showing compute-node.json:'; cat compute-node.json ; ./install.sh compute; retcode=$?; exit $retcode "
         log "Done, exit code: $retcode"
 }
 
