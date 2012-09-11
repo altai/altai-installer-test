@@ -18,7 +18,7 @@ if [ "x$MODE" == "xplain" ]; then
     exit 0
 fi
 
-export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip | perl -ne '/ip=([\d.]+)/ && print $1'"`
+export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 if [ "x$MODE" == "xcompute" ]; then
     export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 fi
