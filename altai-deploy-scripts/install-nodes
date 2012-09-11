@@ -38,7 +38,7 @@ if [[ "x$INSTALLER_VERSION" == "xaltai-installer.rpm" ]]
 then
     yum -y install altai-installer
 else
-    echo "Cloning installer from $INSTALLER_REPO on host $RUN_SERVER"
+    echo "Cloning installer from $INSTALLER_VERSION on host $NODE_NAME"
     yum -y install git altai-chef-gems
     cd /opt/
     git clone $INSTALLER_VERSION altai
