@@ -22,7 +22,7 @@ fi
 
 #TODO - add deps section in altai-release-0.1-0.el6.noarch.rpm
 #TODO - add epel key for deps :)
-set +e
+set -e
 if [[ "x$REPO_RPM" == "xcustom" ]]; then
     rpm -Uvh http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
     perl -i -pe 's/baseurl=.+_(?:(deps)|(centos))/baseurl=$ENV{$1 ? "CUSTOM_DEPS_REPO_PATH" : "CUSTOM_REPO_PATH"}/' /etc/yum.repos.d/altai.repo
@@ -44,9 +44,9 @@ cd /opt/altai/
 
 cp ~/altai-deploy-scripts/*.json ./
 
-set -e
+set +e
 retcode=0
-if [[ "$MODE" == "master.*" ]]; then
+if [[ "$MODE" =~ "master.*" ]]; then
     echo "Running ./install.sh master"
     if [ "x$MODE" == "xmaster" ]; then
         mv master-node-only.json master-node.json
@@ -73,7 +73,7 @@ if [[ "$MODE" == "master.*" ]]; then
         retcode=1
     fi
 fi
-if [[ "$MODE" == ".*compute" ]]; then
+if [[ "$MODE" =~ ".*compute" ]]; then
     echo "Running ./install.sh compute"
     echo 'compute-node.json:'
     cat compute-node.json 
