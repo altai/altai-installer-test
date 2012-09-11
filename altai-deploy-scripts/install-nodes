@@ -24,10 +24,10 @@ fi
 #TODO - add epel key for deps :)
 set -e
 if [[ "x$REPO_RPM" == "xcustom" ]]; then
-    rpm -Uvh http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
+    rpm -Uvh --force http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
     perl -i -pe 's/baseurl=.+_(?:(deps)|(centos))/baseurl=$ENV{$1 ? "CUSTOM_DEPS_REPO_PATH" : "CUSTOM_REPO_PATH"}/' /etc/yum.repos.d/altai.repo
 else 
-    rpm -Uvh $REPO_RPM
+    rpm -Uvh --force $REPO_RPM
 fi
 yum clean all
 
