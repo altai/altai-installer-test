@@ -25,7 +25,10 @@ fi
 set -e
 if [[ "x$REPO_RPM" == "xcustom" ]]; then
     rpm -Uvh --force http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
-    perl -i -pe 's/baseurl=.+_(?:(deps)|(centos))/baseurl=$ENV{$1 ? "CUSTOM_DEPS_REPO_PATH" : "CUSTOM_REPO_PATH"}/' /etc/yum.repos.d/altai.repo
+    #TODO remove after epel's key will be added to altai-release
+    rpm -Uvh --force ttp://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm
+    perl -i -pe 's/@~(.*)~@/$ENV{$1}/' altai.repo
+    cp altai.repo /etc/yum.repos.d/
 else 
     rpm -Uvh --force $REPO_RPM
 fi
