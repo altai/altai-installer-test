@@ -2,10 +2,10 @@
 echo "Starting script $0 $@"
 echo "Deploying to node: $NODE_NAME"
 
+XCAT="jenkins@openstack-xcat.vm.griddynamics.net"
 if [ "x$OS_MODE" == "xskip" ]; then
     echo "Skipping node installation"
 else
-    XCAT="jenkins@openstack-xcat.vm.griddynamics.net"
     rsync -avz --del ./altai-xcat $XCAT:~/
     if ! ssh $XCAT ./altai-xcat/spawn_node "$NODE_NAME" "$OS_MODE"
     then 
@@ -20,7 +20,7 @@ fi
 
 export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip | perl -ne '/ip=([\d.]+)/ && print $1'"`
 if [ "x$MODE" == "xcompute" ]; then
-    export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip | perl -ne '/ip=([\d.]+)/ && print $1'"`
+    export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 fi
 
 

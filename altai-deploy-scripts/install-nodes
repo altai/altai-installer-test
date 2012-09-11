@@ -3,9 +3,13 @@ echo "Starting script $0 $@"
 cd "$(dirname $0)"
 
 #DIRTY INSTALLER TEST SCRIPT
+# load env, passed from jenkins job
 . ./environment 2>/dev/null
+# load check_services, check_ports
+. ./lib
+
 #TODO: check INSTALLER_REPO, INSTALLER_DIR, INSTALLER_VERSION etc and bailout
-#TODO die if unknown NODE_NAME
+#TODO: die if unknown NODE_NAME
 echo "Installer version to use: "$INSTALLER_VERSION
 
 if [ "x$MODE" == "xcompute"  ]; then
@@ -14,71 +18,10 @@ else
     sed -i s/MASTER_NODE_IP/$NODE_IP/ *.json
 fi
 
-MASTER_SERVICES="memcached focus odb 
-    mysqld ntpd rabbitmq-server keystone 
-    glance-api glance-registry
-    nova-api nova-network nova-scheduler nova-novncproxy
-    nova-billing-heart nova-billing-os-amqp
-    pdns nova-dns"
-MASTER_TCP_PORTS="80 5000"
-MASTER_UDP_PORTS="53 123"
-
-COMPUTE_SERVICES="ntpd libvirtd nova-compute"
-COMPUTE_TCP_PORTS="22"
-COMPUTE_UDP_PORTS=""
-
-
-draw_line() { perl -e 'printf "%s\n%s\n\n", "_" x 80, "=" x 80' }
-
-check_services() {
-        SERVICES=$1
-        echo "Checking services... "
-        PROCESS=`perl -lpe 's/\000/ /' /proc/*/cmdline`
-        for service in $SERVICES; do
-            if [[ "$PROCESS" == ".*$service.*" ]]; then
-                echo "Service: $service - ok"
-            else
-                echo "Service: $service - NOT running";
-                retcode=1
-            fi
-        done
-        return $retcode
-}
-
-check_ports() {
-        log "Checking open ports..."
-        TCP_PORTS=$1
-        UDP_PORTS=$2
-        NETSTAT=`netstat -anp`
-        for port in $TCP_PORTS; do
-            if [[ "$NETSTAT" == ".*tcp.*$port.*LISTEN.*" ]]; then
-                echo "TCP Port: $port - ok"
-            else 
-                echo "TCP Port: $port - NOT listening"
-                retcode=1
-            fi
-        done
-
-        for port in $UDP_PORTS; do
-            if [[ "$NETSTAT" == ".*udp.*:$port.*" ]]; then
-                echo "UDP Port: $port - ok"
-            else 
-                echo "UDP Port:$port - NOT listening";
-                retcode=1
-            fi
-        done
-        return $retcode
-}
-
-#upload_image() {
-#        exec_remote "wget http://osc-build.vm.griddynamics.net/images/mini_image.img"
-#        exec_remote 'OS_USERNAME="admin" && OS_PASSWORD="topsecret" && OS_TENANT_NAME="systenant" && OS_AUTH_URL="http://172.18.40.107:5000/v2.0/" && OS_COMPUTE_API_VERSION="1.1" && OS_AUTH_STRATEGY="keystone" && NOVA_VERSION=1.1 && USE_KEYSTONE=true && glance add name="test-suite-image" disk_format=qcow2 container_format=ovf <mini_image.img'
-#}
 
 
 #TODO - add deps section in altai-release-0.1-0.el6.noarch.rpm
 #TODO - add epel key for deps :)
-#TODO - provide key for internal git
 set +e
 if [[ "x$REPO_RPM" == "xcustom" ]]; then
     rpm -Uvh http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
