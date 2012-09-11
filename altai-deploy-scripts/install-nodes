@@ -3,7 +3,7 @@ echo "Starting script $0 $@"
 cd "$(dirname $0)"
 
 #DIRTY INSTALLER TEST SCRIPT
-. ./env
+. ./environment 2>/dev/null
 #TODO: check INSTALLER_REPO, INSTALLER_DIR, INSTALLER_VERSION etc and bailout
 #TODO die if unknown NODE_NAME
 echo "Installer version to use: "$INSTALLER_VERSION
