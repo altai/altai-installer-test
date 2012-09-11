@@ -26,6 +26,7 @@ fi
 
 RUN="root@$NODE_IP"
 scp -r ./altai-deploy-scripts/ "$RUN":
-declare -p | ssh $RUN "cat > ./altai-deploy-scripts/environment; ./altai-deploy-scripts/install-nodes"
+# forward key for osc-robot@git.griddynamics.net
+declare -p | ssh -A $RUN "cat > ./altai-deploy-scripts/environment; ./altai-deploy-scripts/install-nodes"
 retval=$?
 exit $retval
