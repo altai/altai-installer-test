@@ -1,0 +1,20 @@
+#!/bin/bash -ex
+
+DISK="/dev/sda"
+MNT="/mnt/sys"
+
+sfdisk "$DISK" -uM <<EOSFDISK
+1,10000,83
+,4000,82
+EOSFDISK
+
+mkfs.ext3 "${DISK}1"
+mkswap "${DISK}2"
+swapon "${DISK}2" 
+mkdir -p "$MNT"
+mount "${DISK}1" "$MNT"
+
+tar --one-file-system -cpf - / | tar --warning=no-timestamp -xpf - -C "$MNT"
+rm "$MNT"/etc/rc.3/*
+echo "rootfs / rootfs rw 0 0" > "$MNT"/etc/mtab
+umount "$MNT"

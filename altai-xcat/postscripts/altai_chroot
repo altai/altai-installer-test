@@ -1,0 +1,28 @@
+#!/bin/bash -ex
+
+DISK="/dev/sda"
+MNT="/mnt/sys"
+
+mkdir -p "$MNT"
+mount "$DISK"1 "$MNT"
+
+mount -t proc none "$MNT"/proc
+mount --bind /dev "$MNT"/dev
+mount -n -t sysfs none "$MNT"/sys
+service sshd stop
+chroot "$MNT" /bin/bash -c "
+    service sshd start
+    killall udevd
+    udevd --daemon
+    udevadm trigger --type=failed -v
+    udevadm trigger --type=subsystems --action=add
+    udevadm trigger --type=devices --action=add
+    udevadm settle --timeout=60
+    mkdir -p /dev/pts
+    mkdir -p /dev/shm
+    mount -n -t devpts -o gid=5,mode=0620 none /dev/pts
+
+    sysctl -e -p /etc/sysctl.conf >/dev/null 2>&1
+    for i in /etc/rc3.d/S*; do  $i start; done
+"
+EOF

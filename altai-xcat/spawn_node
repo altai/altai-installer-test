@@ -1,0 +1,37 @@
+#!/bin/bash -x
+echo "$0: spawning '$NODE_NAME', mode '$OS_MODE'"
+cd "$(dirname "$0")"
+
+#TODO die if not enough params
+export NODE_NAME=$1
+export OS_MODE=$2
+
+export NODES=`nodels`
+if perl -e '($ENV{NODE_NAME}=~/[^\w]/ or $ENV{NODES} !~ /^\Q$ENV{NODE_NAME}\E$/m) and exit 1'
+then
+    echo "Incorrect node $NODE_NAME"
+    exit 1;
+fi
+
+cp -a ./postscripts/ /install
+
+if [ "$OS_MODE" = 'light' ]; then 
+    chdef $NODE_NAME postscripts=altai_keys,altai_disk,altai_chroot
+    nodeset $NODE_NAME netboot
+else 
+    chdef $NODE_NAME postscripts=altai_keys
+    nodeset $NODE_NAME install
+fi
+
+rpower $NODE_NAME reset
+    
+echo -n "$NODE_NAME: booting"
+until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
+echo "."
+
+if  [ "$OS_MODE" = 'light' ]; then
+    chdef $NODE_NAME postscripts=altai_keys,altai_chroot
+fi
+echo "$NODE_NAME: ready!"
+
+exit 0

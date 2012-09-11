@@ -1,0 +1,28 @@
+#!/bin/bash -x
+echo "Starting script $0 $@"
+echo "Deploying to node: $NODE_NAME"
+
+XCAT="jenkins@openstack-xcat.vm.griddynamics.net"
+
+rsync -avz --del ./altai-xcat $RUN:~/
+if ! ssh $XCAT ~/altai-xcat/spawn_node $NODE_NAME
+then 
+    echo "Failed to spawn $NODE_NAME"
+    exit 1
+fi
+
+if [ "x$MODE" == "xplain" ]; then
+    exit 0
+fi
+
+export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip | perl -ne '/ip=([\d.]+)/ && print $1'"`
+if [ "x$MODE" == "xcompute" ]; then
+    export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip | perl -ne '/ip=([\d.]+)/ && print $1'"`
+fi
+
+
+RUN="root@$NODE_IP"
+scp -r ./altai-deploy-scripts/ "$RUN":
+env | ssh $RUN "cat > ./altai-deploy-scripts/env; ./altai-deploy-scripts/install-nodes"
+retval=$?
+exit $retval
