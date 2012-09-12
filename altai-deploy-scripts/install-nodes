@@ -69,27 +69,30 @@ if [[ "$MODE" == "compute" ]]; then
 fi
 
 
+
+set +x
 echo "Testing:"
-if [[ "$MODE" =~ "master" ]]; then
+retcode=0
+if [[ "$MODE" =~ master ]]; then
     draw_line
     check_services "$MASTER_SERVICES"
     check_ports "$MASTER_TCP_PORTS" "$MASTER_UDP_PORTS"
     echo -n "Checking web UI title:"
-    if wget -qO - http://$NODE_IP:80 | grep "Altai Private Cloud"; then
+    if [[ $(wget -qO - http://$NODE_IP:80/login/) =~ "Altai Private Cloud" ]]; then
         echo " Ok"
-    else 
+    else
         echo " FAIL"
         retcode=1
     fi
     echo -n "Checking nova-manage: "
-    if nova-manage service list | grep enabled | grep api | grep $NODE_NAME; then 
+    if [[ "$(nova-manage service list)" =~ nova-scheduler.*$NODE_NAME.*enabled ]]; then
         echo " Ok"
-    else 
+    else
         echo " FAIL"
         retcode=1
     fi
 fi
-if [[ "$MODE" =~ "compute" ]]; then
+if [[ "$MODE" =~ compute ]]; then
     draw_line
     check_services "$COMPUTE_SERVICES"
     check_ports "$COMPUTE_TCP_PORTS" "$COMPUTE_UDP_PORTS"
@@ -101,6 +104,5 @@ if [ $retcode -eq 0 ]; then
 else
     echo "Installation failed. Try to debug"
 fi
-
 
 exit $retcode 

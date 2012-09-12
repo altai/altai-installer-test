@@ -23,7 +23,7 @@ check_services() {
         echo "Checking services... "
         PROCESS=`perl -lpe 's/\000/ /' /proc/*/cmdline`
         for service in $SERVICES; do
-            if [[ "$PROCESS" == ".*$service.*" ]]; then
+            if [[ "$PROCESS" =~ "$service" ]]; then
                 echo "Service: $service - ok"
             else
                 echo "Service: $service - NOT running";
@@ -34,12 +34,12 @@ check_services() {
 }
 
 check_ports() {
-        log "Checking open ports..."
+        echo "Checking open ports..."
         TCP_PORTS=$1
         UDP_PORTS=$2
         NETSTAT=`netstat -anp`
         for port in $TCP_PORTS; do
-            if [[ "$NETSTAT" == ".*tcp.*$port.*LISTEN.*" ]]; then
+            if [[ "$NETSTAT" =~ tcp.*$port.*LISTEN ]]; then
                 echo "TCP Port: $port - ok"
             else 
                 echo "TCP Port: $port - NOT listening"
@@ -48,7 +48,7 @@ check_ports() {
         done
 
         for port in $UDP_PORTS; do
-            if [[ "$NETSTAT" == ".*udp.*:$port.*" ]]; then
+            if [[ "$NETSTAT" =~ udp.*:$port ]]; then
                 echo "UDP Port: $port - ok"
             else 
                 echo "UDP Port:$port - NOT listening";
