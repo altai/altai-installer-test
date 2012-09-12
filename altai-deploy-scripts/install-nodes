@@ -24,6 +24,7 @@ fi
 #TODO - add epel key for deps :)
 set -e
 if [[ "x$REPO_RPM" == "xcustom" ]]; then
+    #TODO switch on v1.0 for key
     rpm -Uvh --force http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
     #TODO remove after epel's key will be added to altai-release
     rpm -Uvh --force http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm
@@ -41,6 +42,7 @@ else
     echo "Cloning installer from $INSTALLER_VERSION on host $NODE_NAME"
     yum -y install git altai-chef-gems
     cd /opt/
+    rm -rf altai/
     git clone $INSTALLER_VERSION altai
 fi
 cd /opt/altai/
