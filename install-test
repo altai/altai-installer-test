@@ -7,11 +7,13 @@ if [ "x$OS_MODE" == "xskip" ]; then
     echo "Skipping node installation"
 else
     rsync -avz --del ./altai-xcat $XCAT:~/
-    if ! time ssh $XCAT ./altai-xcat/spawn_node "$NODE_NAME" "$OS_MODE"
+    printf "[%s] start installing node\n" "$(date)"
+    if ! ssh $XCAT ./altai-xcat/spawn_node "$NODE_NAME" "$OS_MODE"
     then 
         echo "Failed to spawn $NODE_NAME"
         exit 1
     fi
+    printf "[%s] finish installing node\n" "$(date)"
 fi
 
 if [ "x$MODE" == "xplain" ]; then
