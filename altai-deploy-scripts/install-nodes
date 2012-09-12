@@ -45,13 +45,14 @@ else
     rm -rf altai/
     git clone $INSTALLER_VERSION altai
 fi
-cd /opt/altai/
 
+cd /opt/altai/
 cp /opt/altai-deploy-scripts/*.json ./
 
 set +e
 retcode=0
-if [[ "$MODE" =~ "master.*" ]]; then
+echo "Installation:"
+if [[ "$MODE" =~ "master" ]]; then
     echo "Running ./install.sh master"
     if [ "x$MODE" == "xmaster" ]; then
         mv master-node-only.json master-node.json
@@ -59,7 +60,17 @@ if [[ "$MODE" =~ "master.*" ]]; then
     echo 'master-node.json:'
     cat master-node.json 
     ./install.sh master
+fi
+if [[ "$MODE" == "compute" ]]; then
+    echo "Running ./install.sh compute"
+    echo 'compute-node.json:'
+    cat compute-node.json 
+    ./install.sh compute
+fi
 
+
+echo "Testing:"
+if [[ "$MODE" =~ "master" ]]; then
     draw_line
     check_services "$MASTER_SERVICES"
     check_ports "$MASTER_TCP_PORTS" "$MASTER_UDP_PORTS"
@@ -78,21 +89,18 @@ if [[ "$MODE" =~ "master.*" ]]; then
         retcode=1
     fi
 fi
-if [[ "$MODE" =~ ".*compute" ]]; then
-    echo "Running ./install.sh compute"
-    echo 'compute-node.json:'
-    cat compute-node.json 
-    ./install.sh compute
-
+if [[ "$MODE" =~ "compute" ]]; then
     draw_line
     check_services "$COMPUTE_SERVICES"
     check_ports "$COMPUTE_TCP_PORTS" "$COMPUTE_UDP_PORTS"
 fi
+
 
 if [ $retcode -eq 0 ]; then
     echo "Installation Successful"
 else
     echo "Installation failed. Try to debug"
 fi
+
 
 exit $retcode 
