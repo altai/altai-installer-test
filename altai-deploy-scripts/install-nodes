@@ -26,8 +26,8 @@ set -e
 if [[ "x$REPO_RPM" == "xcustom" ]]; then
     #TODO switch on v1.0 for key
     rpm -Uvh --force http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
-    #TODO remove after epel's key will be added to altai-release
-    rpm -Uvh --force http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm
+    #TODO remove after epel's key will be added to altai-release and allow gpgcheck
+    #rpm -Uvh --force http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm
     perl -i -pe 's/@~(.*)~@/$ENV{$1}/' altai.repo
     cp altai.repo /etc/yum.repos.d/
 else 
@@ -47,7 +47,7 @@ else
 fi
 cd /opt/altai/
 
-cp ~/altai-deploy-scripts/*.json ./
+cp /opt/altai-deploy-scripts/*.json ./
 
 set +e
 retcode=0
