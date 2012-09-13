@@ -22,9 +22,9 @@ fi
 
 export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 if [ "x$MODE" == "xcompute" ]; then
-    MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
+    export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 else
-    MASTER_NODE_IP=""
+    export MASTER_NODE_IP=""
 fi
 
 
@@ -36,7 +36,6 @@ scp -r ./altai-deploy-scripts/ "$RUN":/opt/
 ssh-agent bash -c "
 ssh-add
 declare -p $VARS | ssh -A $RUN 'cat > /opt/altai-deploy-scripts/environment; /opt/altai-deploy-scripts/install-nodes'
-exit $?
 "
 retval=$?
 
