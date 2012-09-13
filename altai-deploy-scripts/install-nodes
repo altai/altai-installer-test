@@ -96,6 +96,13 @@ if [[ "$MODE" =~ compute ]]; then
     draw_line
     check_services "$COMPUTE_SERVICES"
     check_ports "$COMPUTE_TCP_PORTS" "$COMPUTE_UDP_PORTS"
+    echo -n "Checking nova-manage: "
+    if [[ "$(nova-manage service list)" =~ nova-compute.*$NODE_NAME.*enabled ]]; then
+        echo " Ok"
+    else
+        echo " FAIL"
+        retcode=1
+    fi
 fi
 
 

@@ -59,7 +59,15 @@ check_ports() {
 }
 
 #upload_image() {
-#        exec_remote "wget http://osc-build.vm.griddynamics.net/images/mini_image.img"
-#        exec_remote 'OS_USERNAME="admin" && OS_PASSWORD="topsecret" && OS_TENANT_NAME="systenant" && OS_AUTH_URL="http://172.18.40.107:5000/v2.0/" && OS_COMPUTE_API_VERSION="1.1" && OS_AUTH_STRATEGY="keystone" && NOVA_VERSION=1.1 && USE_KEYSTONE=true && glance add name="test-suite-image" disk_format=qcow2 container_format=ovf <mini_image.img'
+#        wget http://osc-build.vm.griddynamics.net/images/mini_image.img
+#        OS_USERNAME="admin" \
+#        OS_PASSWORD="topsecret" \
+#        OS_TENANT_NAME="systenant" \
+#        OS_AUTH_URL="http://$NODE_IP:5000/v2.0/" \
+#        OS_COMPUTE_API_VERSION="1.1" \
+#        OS_AUTH_STRATEGY="keystone" \
+#        NOVA_VERSION=1.1 \
+#        USE_KEYSTONE=true \
+#        glance add name="test-suite-image" disk_format=qcow2 container_format=ovf <mini_image.img'
 #}
 

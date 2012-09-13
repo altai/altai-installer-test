@@ -36,6 +36,8 @@ scp -r ./altai-deploy-scripts/ "$RUN":/opt/
 ssh-agent bash -c "
 ssh-add
 declare -p $VARS | ssh -A $RUN 'cat > /opt/altai-deploy-scripts/environment; /opt/altai-deploy-scripts/install-nodes'
-retval=$?
+exit $?
 "
+retval=$?
+
 exit $retval
