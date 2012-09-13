@@ -59,13 +59,13 @@ if [[ "$MODE" =~ "master" ]]; then
     fi
     echo 'master-node.json:'
     cat master-node.json 
-    ./install.sh master
+    ./install.sh --accept-eula master
 fi
 if [[ "$MODE" == "compute" ]]; then
     echo "Running ./install.sh compute"
     echo 'compute-node.json:'
     cat compute-node.json 
-    ./install.sh compute
+    ./install.sh --accept-eula compute
 fi
 
 
