@@ -20,13 +20,13 @@ if [ "x$MODE" == "xplain" ]; then
     exit 0
 fi
 
+set -e 
 export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 if [ "x$MODE" == "xcompute" ]; then
     export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
 else
     export MASTER_NODE_IP=""
 fi
-
 
 RUN="root@$NODE_IP"
 VARS="REPO_RPM CUSTOM_REPO_PATH CUSTOM_DEPS_REPO_PATH MODE INSTALLER_VERSION"
@@ -37,6 +37,5 @@ ssh-agent bash -c "
 ssh-add
 declare -p $VARS | ssh -A $RUN 'cat > /opt/altai-deploy-scripts/environment; /opt/altai-deploy-scripts/install-nodes'
 "
-retval=$?
 
-exit $retval
+exit 
