@@ -13,7 +13,5 @@ baseurl=@~CUSTOM_DEPS_REPO_PATH~@
 failovermethod=priority
 enabled=1
 gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-altai
-file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
-file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-altai file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6 file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6
 
