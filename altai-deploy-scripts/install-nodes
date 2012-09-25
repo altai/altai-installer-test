@@ -14,10 +14,10 @@ echo "Installer version to use: "$INSTALLER_VERSION
 
 if [ "x$MODE" == "xcompute"  ]; then
     sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
-    sed -i s/COMPUTE_NODE_IP/$NODE_IP/ *.json
+    sed -i s/COMPUTE_NODE_IP/$NODE_IP/ compute-node.json
 else
     sed -i s/MASTER_NODE_IP/$NODE_IP/ *.json
-    sed -i s/COMPUTE_NODE_IP/$NODE_IP/ *.json
+    sed -i s/COMPUTE_NODE_IP/$NODE_IP/ compute-node.json
 fi
 
 if [[ "$USE_EXTERNAL_DNS" == "1" ]]; then
