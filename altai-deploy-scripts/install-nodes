@@ -21,10 +21,16 @@ else
 fi
 
 if [[ "$USE_EXTERNAL_DNS" =~ "true" ]]; then
-    cat >"/etc/resolv.conf" <<EOF
+cat >"/etc/resolv.conf" <<EOF
 #Changed by install-script
 nameserver 8.8.8.8
 EOF
+
+cat >>"/etc/hosts" <<EOF
+#Changed by install-script
+127.0.0.1 osc-build.vm.griddynamics.net
+EOF
+
 fi
 
 #TODO - add deps section in altai-release-0.1-0.el6.noarch.rpm
