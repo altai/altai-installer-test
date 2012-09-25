@@ -22,8 +22,9 @@ fi
 
 if [[ "$USE_EXTERNAL_DNS" == "1" ]]; then
     cat >"/etc/resolv.conf" <<EOF
-    nameserver 8.8.8.8
-    EOF
+#Changed by install-script
+nameserver 8.8.8.8
+EOF
 fi
 
 #TODO - add deps section in altai-release-0.1-0.el6.noarch.rpm
