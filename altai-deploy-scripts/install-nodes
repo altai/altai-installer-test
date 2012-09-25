@@ -22,7 +22,7 @@ fi
 
 if [[ "$USE_EXTERNAL_DNS" =~ "true" ]]; then
 cat >"/etc/resolv.conf" <<EOF
-#Changed by install-script
+;Changed by install-script
 nameserver 8.8.8.8
 EOF
 
@@ -30,8 +30,11 @@ cat >>"/etc/hosts" <<EOF
 #Changed by install-script
 127.0.0.1 osc-build.vm.griddynamics.net
 EOF
-
 fi
+
+
+
+
 
 #TODO - add deps section in altai-release-0.1-0.el6.noarch.rpm
 #TODO - add epel key for deps :)
@@ -73,7 +76,15 @@ if [[ "$MODE" =~ "master" ]]; then
     echo 'master-node.json:'
     cat master-node.json 
     ./install.sh --accept-eula master
+
+#TODO - this should be done by installer
+cat >>"/etc/resolv.conf" <<EOF
+;Changed by install-script. Should be done by installer
+search openstack-core.griddynamics.com
+nameserver $NODE_IP
+EOF
 fi
+
 if [[ "$MODE" == "compute" ]]; then
     echo "Running ./install.sh compute"
     echo 'compute-node.json:'
