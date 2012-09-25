@@ -30,7 +30,7 @@ fi
 
 RUN="root@$NODE_IP"
 VARS="REPO_RPM CUSTOM_REPO_PATH CUSTOM_DEPS_REPO_PATH MODE INSTALLER_VERSION"
-VARS="$VARS NODE_NAME NODE_IP MASTER_NODE_NAME MASTER_NODE_IP"
+VARS="$VARS NODE_NAME NODE_IP MASTER_NODE_NAME MASTER_NODE_IP USE_EXTERNAL_DNS"
 scp -r ./altai-deploy-scripts/ "$RUN":/opt/
 # forward key for osc-robot@git.griddynamics.net
 ssh-agent bash -c "
