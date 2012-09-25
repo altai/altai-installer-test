@@ -20,7 +20,7 @@ else
     sed -i s/COMPUTE_NODE_IP/$NODE_IP/ compute-node.json
 fi
 
-if [[ "$USE_EXTERNAL_DNS" == "1" ]]; then
+if [[ "$USE_EXTERNAL_DNS" =~ "true" ]]; then
     cat >"/etc/resolv.conf" <<EOF
 #Changed by install-script
 nameserver 8.8.8.8
