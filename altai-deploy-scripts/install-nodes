@@ -126,6 +126,7 @@ if [[ "$MODE" =~ master ]]; then
         retcode=1
     fi
     echo -n "Checking nova-manage: "
+    sleep 20
     if [[ "$(nova-manage service list)" =~ nova-scheduler.*$NODE_NAME.*enabled ]]; then
         echo " Ok"
     else
@@ -138,6 +139,7 @@ if [[ "$MODE" =~ compute ]]; then
     check_services "$COMPUTE_SERVICES"
     check_ports "$COMPUTE_TCP_PORTS" "$COMPUTE_UDP_PORTS"
     echo -n "Checking nova-manage: "
+    sleep 20
     if [[ "$(nova-manage service list)" =~ nova-compute.*$NODE_NAME.*enabled ]]; then
         echo " Ok"
     else
