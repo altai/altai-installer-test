@@ -8,6 +8,7 @@
     "projects-interface": "eth0",
     "master-ip-private": "MASTER_NODE_IP",
     "master-ip-public": "MASTER_NODE_IP",
+    "master-configured-hostname": "http://MASTER_NODE_IP",
     "dns-zone": "openstack-core.griddynamics.com",
     "mail-sender-email": "altai-test@griddynamics.com",
     "mail-server": "smtp.gmail.com",
