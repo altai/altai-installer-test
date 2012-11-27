@@ -2,7 +2,8 @@
 echo "Starting script $0 $@"
 echo "Deploying to node: $NODE_NAME"
 
-XCAT="jenkins@openstack-xcat.vm.griddynamics.net"
+XCAT=${XCAT:-jenkins@5.34.183.100}
+
 if [ "x$OS_MODE" == "xskip" ]; then
     echo "Skipping node installation"
 else

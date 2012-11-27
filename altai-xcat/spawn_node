@@ -24,7 +24,7 @@ fi
 # touch /install/postscripts/altai_keys
 # chgrp jenkins /install/postscripts/altai_*
 # chmod 664 /install/postscripts/altai_*
-cp -r ./postscripts/ /install
+cp -r ./postscripts/* /install/postscripts/
 
 if [ "$OS_MODE" = 'light' ]; then 
     chdef $NODE_NAME postscripts=altai_keys,altai_disk,altai_chroot
@@ -34,8 +34,17 @@ else
     nodeset $NODE_NAME install
 fi
 
-rpower $NODE_NAME reset
-    
+case "$NODE_NAME" in
+  a*)
+	echo -n "$NODE_NAME: "
+	OID=`nodels $NODE_NAME mac.comments | cut -d':' -f2`
+	snmpset -Os -c gdr33b00t -v 1 46.28.69.208 $OID integer 3
+        ;;
+  n*)
+	rpower $NODE_NAME reset
+        ;;
+esac
+
 set +x
 echo -n "$NODE_NAME: booting"
 until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
