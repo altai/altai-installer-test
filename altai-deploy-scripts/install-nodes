@@ -109,6 +109,8 @@ make_resolv_conf(){
 EOF
 fi
 
+# workaround to have access to build server
+iptables -t nat -I POSTROUTING 1 -d 10.100.0.0/16 -j MASQUERADE
 
 
 set +x
