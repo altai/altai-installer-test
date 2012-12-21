@@ -8,9 +8,7 @@ cd "$(dirname $0)"
 # load check_services, check_ports
 . ./lib
 
-#TODO: check INSTALLER_REPO, INSTALLER_DIR, INSTALLER_VERSION etc and bailout
 #TODO: die if unknown NODE_NAME
-echo "Installer version to use: "$INSTALLER_VERSION
 
 if [ "x$MODE" == "xcompute"  ]; then
     sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
@@ -33,22 +31,11 @@ EOF
 fi
 
 
-
-
 set -e
 rpm -Uvh --force $REPO_RPM
 yum clean all
 
-if [[ "x$INSTALLER_VERSION" == "xaltai-installer.rpm" ]]
-then
-    yum -y install altai-installer
-else
-    echo "Cloning installer from $INSTALLER_VERSION on host $NODE_NAME"
-    yum -y install git altai-chef-gems
-    cd /opt/
-    rm -rf altai/
-    git clone $INSTALLER_VERSION altai
-fi
+yum -y install altai-installer
 
 cd /opt/altai/
 cp /opt/altai-deploy-scripts/*.json ./
@@ -59,7 +46,7 @@ echo "Installation:"
 if [[ "$MODE" =~ "master" ]]; then
     echo "Running ./install.sh master"
     if [ "x$MODE" == "xmaster" ]; then
-        mv master-node-only.json master-node.json
+        sed -i 's/, *"role\[compute-node\]" *//' master-node.json
     fi
     echo 'master-node.json:'
     cat master-node.json 
