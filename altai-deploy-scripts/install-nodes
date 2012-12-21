@@ -8,9 +8,7 @@ cd "$(dirname $0)"
 # load check_services, check_ports
 . ./lib
 
-#TODO: check INSTALLER_REPO, INSTALLER_DIR, INSTALLER_VERSION etc and bailout
 #TODO: die if unknown NODE_NAME
-echo "Installer version to use: "$INSTALLER_VERSION
 
 if [ "x$MODE" == "xcompute"  ]; then
     sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
@@ -33,34 +31,11 @@ EOF
 fi
 
 
-
-
-
-#TODO - add deps section in altai-release-0.1-0.el6.noarch.rpm
-#TODO - add epel key for deps :)
 set -e
-if [[ "x$REPO_RPM" == "xcustom" ]]; then
-    #TODO switch on v1.0 for key
-    rpm -Uvh --force http://yum.griddynamics.net/yum/altai_v0.1_centos/altai-release-0.1-0.el6.noarch.rpm
-    #TODO remove after epel's key will be added to altai-release and allow gpgcheck
-    #rpm -Uvh --force http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm
-    perl -i -pe 's/@~(.*)~@/$ENV{$1}/' altai.repo
-    cp altai.repo /etc/yum.repos.d/
-else 
-    rpm -Uvh --force $REPO_RPM
-fi
+rpm -Uvh --force $REPO_RPM
 yum clean all
 
-if [[ "x$INSTALLER_VERSION" == "xaltai-installer.rpm" ]]
-then
-    yum -y install altai-installer
-else
-    echo "Cloning installer from $INSTALLER_VERSION on host $NODE_NAME"
-    yum -y install git altai-chef-gems
-    cd /opt/
-    rm -rf altai/
-    git clone $INSTALLER_VERSION altai
-fi
+yum -y install altai-installer
 
 cd /opt/altai/
 cp /opt/altai-deploy-scripts/*.json ./
@@ -71,7 +46,7 @@ echo "Installation:"
 if [[ "$MODE" =~ "master" ]]; then
     echo "Running ./install.sh master"
     if [ "x$MODE" == "xmaster" ]; then
-        mv master-node-only.json master-node.json
+        sed -i 's/, *"role\[compute-node\]" *//' master-node.json
     fi
     echo 'master-node.json:'
     cat master-node.json 
