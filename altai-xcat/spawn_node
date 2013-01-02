@@ -1,0 +1,59 @@
+#!/bin/bash
+set +ex
+cd "$(dirname "$0")"
+
+#TODO die if not enough params
+export NODE_NAME=$1
+export OS_MODE=$2
+echo "$0: spawning '$NODE_NAME', mode '$OS_MODE'"
+
+#close STDIN as it confuse nodels and lsdef, called from script
+exec </dev/null
+
+export NODES=`nodels`
+#yeah, it was tested and looks like really worked. please don't touch
+if ! perl -e '($ENV{NODE_NAME}=~/[^\w]/ or $ENV{NODES} !~ /^\Q$ENV{NODE_NAME}\E$/m) and exit 1'
+then
+    echo "Incorrect node $NODE_NAME"
+    exit 1;
+fi
+
+# FIXME xcat node should be pre-setuped with:
+# touch /install/postscripts/altai_disk
+# touch /install/postscripts/altai_chroot 
+# touch /install/postscripts/altai_keys
+# chgrp jenkins /install/postscripts/altai_*
+# chmod 664 /install/postscripts/altai_*
+cp -r ./postscripts/* /install/postscripts/
+
+if [ "$OS_MODE" = 'light' ]; then 
+    chdef $NODE_NAME postscripts=altai_keys,altai_disk,altai_chroot
+    nodeset $NODE_NAME netboot
+else 
+    chdef $NODE_NAME postscripts=altai_keys
+    nodeset $NODE_NAME install
+fi
+
+case "$NODE_NAME" in
+  a*)
+	echo -n "$NODE_NAME: "
+	OID=`nodels $NODE_NAME mac.comments | cut -d':' -f2`
+	snmpset -Os -c gdr33b00t -v 1 46.28.69.208 $OID integer 3
+        ;;
+  n*)
+	rpower $NODE_NAME reset
+        ;;
+esac
+
+set +x
+echo -n "$NODE_NAME: booting"
+until [[ `nodels $NODE_NAME nodelist.status` =~ "booted" ]]; do echo -n "."; sleep 5; done
+echo "."
+set -x
+
+if  [ "$OS_MODE" = 'light' ]; then
+    chdef $NODE_NAME postscripts=altai_keys,altai_chroot
+fi
+echo "$NODE_NAME: ready!"
+
+exit 0

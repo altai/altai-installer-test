@@ -1,0 +1,148 @@
+#!/bin/bash -x
+echo "Starting script $0 $@"
+cd "$(dirname $0)"
+
+#DIRTY INSTALLER TEST SCRIPT
+# load env, passed from jenkins job
+. ./environment 2>/dev/null
+# load check_services, check_ports
+. ./lib
+
+#TODO: check INSTALLER_REPO, INSTALLER_DIR, INSTALLER_VERSION etc and bailout
+#TODO: die if unknown NODE_NAME
+echo "Installer version to use: "$INSTALLER_VERSION
+
+if [ "x$MODE" == "xcompute"  ]; then
+    sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
+    sed -i s/COMPUTE_NODE_IP/$NODE_IP/ compute-node.json
+else
+    sed -i s/MASTER_NODE_IP/$NODE_IP/ *.json
+    sed -i s/COMPUTE_NODE_IP/$NODE_IP/ compute-node.json
+fi
+
+if [[ "$USE_EXTERNAL_DNS" =~ "true" ]]; then
+cat >"/etc/resolv.conf" <<EOF
+;Changed by install-script
+nameserver 8.8.8.8
+EOF
+
+cat >>"/etc/hosts" <<EOF
+#Changed by install-script
+127.0.0.1 osc-build.vm.griddynamics.net
+EOF
+fi
+
+
+
+
+set -e
+rpm -Uvh --force $REPO_RPM
+yum clean all
+
+if [[ "x$INSTALLER_VERSION" == "xaltai-installer.rpm" ]]
+then
+    yum -y install altai-installer
+else
+    echo "Cloning installer from $INSTALLER_VERSION on host $NODE_NAME"
+    yum -y install git altai-chef-gems
+    cd /opt/
+    rm -rf altai/
+    git clone $INSTALLER_VERSION altai
+fi
+
+cd /opt/altai/
+cp /opt/altai-deploy-scripts/*.json ./
+
+set +e
+retcode=0
+echo "Installation:"
+if [[ "$MODE" =~ "master" ]]; then
+    echo "Running ./install.sh master"
+    if [ "x$MODE" == "xmaster" ]; then
+        mv master-node-only.json master-node.json
+    fi
+    echo 'master-node.json:'
+    cat master-node.json 
+    ./install.sh --accept-eula master
+
+#TODO - this should be done by installer
+cat >>"/etc/resolv.conf" <<EOF
+;Changed by install-script. Should be done by installer
+search openstack-core.griddynamics.com
+nameserver $MASTER_NODE_IP
+EOF
+cat >"/etc/dhclient-enter-hooks"<< EOF
+make_resolv_conf(){
+        :
+}
+EOF
+fi
+
+if [[ "$MODE" == "compute" ]]; then
+    echo "Running ./install.sh compute"
+    echo 'compute-node.json:'
+    cat compute-node.json 
+    ./install.sh --accept-eula compute
+
+#TODO - this should be done by installer
+cat >>"/etc/resolv.conf" <<EOF
+;Changed by install-script. Should be done by installer
+search openstack-core.griddynamics.com
+nameserver $MASTER_NODE_IP
+EOF
+cat >"/etc/dhclient-enter-hooks"<< EOF
+make_resolv_conf(){
+        :
+}
+EOF
+fi
+
+
+
+set +x
+echo "Testing:"
+retcode=0
+if [[ "$MODE" =~ master ]]; then
+    draw_line
+    check_services "$MASTER_SERVICES"
+    check_ports "$MASTER_TCP_PORTS" "$MASTER_UDP_PORTS"
+    echo -n "Checking web UI title:"
+    if [[ $(wget -qO - http://$NODE_IP:80/login/) =~ "Altai Private Cloud" ]]; then
+        echo " Ok"
+    else
+        echo " FAIL"
+        retcode=1
+    fi
+    echo -n "Checking nova-manage: "
+    sleep 20
+    if [[ "$(nova-manage service list)" =~ nova-scheduler.*$NODE_NAME.*enabled ]]; then
+        echo " Ok"
+    else
+        echo " FAIL"
+        retcode=1
+    fi
+fi
+if [[ "$MODE" =~ compute ]]; then
+    draw_line
+    check_services "$COMPUTE_SERVICES"
+    check_ports "$COMPUTE_TCP_PORTS" "$COMPUTE_UDP_PORTS"
+    echo -n "Checking nova-manage: "
+    sleep 20
+    if [[ "$(nova-manage service list)" =~ nova-compute.*$NODE_NAME.*enabled ]]; then
+        echo " Ok"
+    else
+        echo " FAIL"
+        retcode=1
+    fi
+fi
+
+
+
+
+if [ $retcode -eq 0 ]; then
+    echo "Installation Successful"
+else
+    echo "Installation failed. Try to debug"
+fi
+
+exit $retcode 

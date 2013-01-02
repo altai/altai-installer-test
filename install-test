@@ -1,0 +1,42 @@
+#!/bin/bash -x
+echo "Starting script $0 $@"
+echo "Deploying to node: $NODE_NAME"
+
+XCAT=${XCAT:-jenkins@5.34.183.100}
+
+if [ "x$OS_MODE" == "xskip" ]; then
+    echo "Skipping node installation"
+else
+    rsync -avz --del ./altai-xcat $XCAT:~/
+    printf "[%s] start installing node\n" "$(date)"
+    if ! ssh $XCAT ./altai-xcat/spawn_node "$NODE_NAME" "$OS_MODE"
+    then 
+        echo "Failed to spawn $NODE_NAME"
+        exit 1
+    fi
+    printf "[%s] finish installing node\n" "$(date)"
+fi
+
+if [ "x$MODE" == "xplain" ]; then
+    exit 0
+fi
+
+set -e 
+export NODE_IP=`ssh $XCAT "lsdef $NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
+if [ "x$MODE" == "xcompute" ]; then
+    export MASTER_NODE_IP=`ssh $XCAT "lsdef $MASTER_NODE_NAME -i ip </dev/null | perl -ne 'print /ip=([\d.]+)/'"`
+else
+    export MASTER_NODE_IP=""
+fi
+
+RUN="root@$NODE_IP"
+VARS="REPO_RPM CUSTOM_REPO_PATH CUSTOM_DEPS_REPO_PATH MODE INSTALLER_VERSION"
+VARS="$VARS NODE_NAME NODE_IP MASTER_NODE_NAME MASTER_NODE_IP USE_EXTERNAL_DNS"
+scp -r ./altai-deploy-scripts/ "$RUN":/opt/
+# forward key for osc-robot@git.griddynamics.net
+ssh-agent bash -c "
+ssh-add
+declare -p $VARS | ssh -A $RUN 'cat > /opt/altai-deploy-scripts/environment; /opt/altai-deploy-scripts/install-nodes'
+"
+
+exit 
