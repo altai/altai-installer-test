@@ -38,7 +38,7 @@ case "$NODE_NAME" in
   a*)
 	echo -n "$NODE_NAME: "
 	OID=`nodels $NODE_NAME mac.comments | cut -d':' -f2`
-	snmpset -Os -c gdr33b00t -v 1 46.28.69.208 $OID integer 3
+	snmpset -Os -c gdr33b00t -v 1 46.28.69.212 $OID integer 3
         ;;
   n*)
 	rpower $NODE_NAME reset
