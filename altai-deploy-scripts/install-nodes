@@ -38,17 +38,7 @@ fi
 set -e
 rpm -Uvh --force $REPO_RPM
 yum clean all
-
-if [[ "x$INSTALLER_VERSION" == "xaltai-installer.rpm" ]]
-then
-    yum -y install altai-installer
-else
-    echo "Cloning installer from $INSTALLER_VERSION on host $NODE_NAME"
-    yum -y install git altai-chef-gems
-    cd /opt/
-    rm -rf altai/
-    git clone $INSTALLER_VERSION altai
-fi
+yum -y install altai-installer
 
 cd /opt/altai/
 cp /opt/altai-deploy-scripts/*.json ./
