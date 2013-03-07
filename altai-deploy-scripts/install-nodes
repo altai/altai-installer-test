@@ -8,9 +8,7 @@ cd "$(dirname $0)"
 # load check_services, check_ports
 . ./lib
 
-#TODO: check INSTALLER_REPO, INSTALLER_DIR, INSTALLER_VERSION etc and bailout
 #TODO: die if unknown NODE_NAME
-echo "Installer version to use: "$INSTALLER_VERSION
 
 if [ "x$MODE" == "xcompute"  ]; then
     sed -i s/MASTER_NODE_IP/$MASTER_NODE_IP/ *.json
