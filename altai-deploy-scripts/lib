@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export MASTER_SERVICES="memcached focus odb 
+export MASTER_SERVICES="memcached focus 
     mysqld ntpd rabbitmq-server keystone 
     glance-api glance-registry
     nova-api nova-network nova-scheduler nova-novncproxy
