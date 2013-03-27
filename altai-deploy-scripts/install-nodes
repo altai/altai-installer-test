@@ -34,7 +34,8 @@ fi
 
 
 set -e
-rpm -Uvh --force $REPO_RPM
+rpm --erase altai-release 2>/dev/null || true
+yum install -y $REPO_RPM
 yum clean all
 yum -y install altai-installer
 
